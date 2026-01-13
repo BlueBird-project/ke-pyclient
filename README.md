@@ -7,7 +7,10 @@ Python client for TNO Knowledge Engine
 ### build
 
 ``` 
-poetry build
+poetry config repositories.github https://pypi.pkg.github.com/BlueBird-project
+poetry config pypi-token.github <token>
+
+ poetry publish --build -r github
 ```
 
 ### install
