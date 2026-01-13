@@ -26,10 +26,9 @@ def configure_ki():
     :return:
     """
     # global KI_CONFIG_PATH
-    import ke_vars
+    import ke_client.ke_vars as   ke_vars
     global ki_conf
     global ke_settings
-    import ke_vars
 
     ki_conf_file = ke_settings.ki_config_path if ke_settings.ki_config_path is not None else ke_vars.KI_CONFIG_PATH
     import os
