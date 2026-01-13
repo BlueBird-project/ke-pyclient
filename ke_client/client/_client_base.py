@@ -11,7 +11,7 @@ from ke_client.client._ki_utils import default_handler
 
 from requests import Response
 
-import _ke_rest_response_errors as response_errors
+import ke_client.client._ke_rest_response_errors as response_errors
 from ke_client.ki_model import GraphPattern
 from ke_client.ki_model import KnowledgeInteractionType, KnowledgeInteraction, ExchangeInfoStatus
 import ke_client.ke_vars as ke_vars
