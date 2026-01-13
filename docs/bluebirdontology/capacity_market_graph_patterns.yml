@@ -1,0 +1,163 @@
+knowledge_engine:
+  graph_patterns:
+    market:
+      name: "market"
+      description: "Market details"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        s4city: "https://saref.etsi.org/s4city"
+        s4ener: "https://saref.etsi.org/s4ener"
+        foaf: "http://xmlns.com/foaf/0.1/"
+        ubmarket: "https://ubflex.bluebird.eu/market"
+      pattern:
+        - ' ?country rdf:type s4city:Country .'
+        - ' ?country ubmarket:hasISO3166Name "Poland" .'
+        - ' ?market rdf:type foaf:Agent .'
+        - ' ?market s4city:hasAdministrativeArea ?country .'
+        - ' ?market rdf:type ubmarket:CapacityMarket .'
+        - ' ?market ubmarket:hasCalculationMethod ?calcmethod .'
+        - ' ?calcmethod rdf:type ubmarket:CalculationMethod .'
+        - ' ?calcmethod s4ener:hasEffectivePeriod  "PT1440M"^^xsd:duration  .'
+        - ' ?calcmethod ubmarket:hasDayFilter "Weekday"  .'
+
+    flex-contract-request:
+      name: "flex-contract-request"
+      description: " Request for potential flexibility offers"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+      pattern:
+        - ' ?market rdf:type foaf:Agent .'
+        - " ?request rdf:type ubmarket:FlexContractRequest ."
+        - ' ?request  s4ener:producedBy  ?market . '
+        - ' ?request  s4ener:hasCreationTime ?timestamp . '
+        - ' ?request ubmarket:hasCost ?cost .'
+        - ' ?request  s4ener:hasEffectivePeriod ?offerperiod . '
+        - ' ?cost rdf:type s4ener:DataPoint .'
+        - ' ?cost saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?value .'
+        - ' ?dpr saref:isMeasuredIn "PLNPerMegawattHour" .'
+    contract-offer:
+      name: "contract-offer"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+        time: "http://www.w3.org/2006/time#"
+      pattern:
+        - ' ?client rdf:type foaf:Agent .'
+        - ' ?request rdf:type ubmarket:FlexContractRequest .'
+        - ' ?offer rdf:type ubmarket:FlexContractOffer .'
+        - ' ?offer  s4ener:producedBy  ?client . '
+        - ' ?offer  s4ener:hasCreationTime ?timestamp . '
+        - ' ?offer  s4ener:hasEffectivePeriod ?offerperiod . '
+        - ' ?offer  s4ener:relatesToRequest ?request . '
+        - ' ?offer  s4ener:includes ?flexibility . '
+        - ' ?flexibility rdf:type s4ener:DataPoint .'
+        - ' ?flexibility saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?value .'
+        - ' ?dpr saref:isMeasuredIn "MegawattHour" .'
+    flex-demand:
+      name: "flex-demand"
+      description: "demand for power limit. Demand contains current baseline and  power demand (according to the contract and needs) "
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+      pattern:
+        - ' ?market rdf:type foaf:Agent .'
+        - ' ?client rdf:type foaf:Agent .'
+        - " ?request rdf:type s4ener:FlexRequest ."
+        - ' ?request  s4ener:producedBy  ?market . '
+        - ' ?request  s4ener:hasCreationTime ?timestamp . '
+        - ' ?request  s4ener:hasEffectivePeriod ?offerperiod . '
+        - ' ?request  s4ener:hasRecipient   ?client . '
+        - ' ?request  s4ener:includes ?dp . '
+        - ' ?dp rdf:type s4ener:DataPoint .'
+        - ' ?dp saref:hasUsage ?dpu .'
+        - ' ?dpu rdf:type s4ener:BaseLine.'
+        - ' ?dp rdf:type s4ener:DataPoint .'
+        - ' ?dp saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?baseline .'
+        - ' ?dpr saref:isMeasuredIn "MegawattHour" .'
+        - ' ?request  s4ener:includes ?demand . '
+        - ' ?demand rdf:type s4ener:DataPoint .'
+        - ' ?demand saref:hasResult ?demand_dpr .'
+        - ' ?demand_dpr saref:hasValue ?value .'
+        - ' ?demand_dpr saref:isMeasuredIn "MegawattHour" .'
+    consumer-offer:
+      name: "consumer-offer"
+      description: "Consumer's response to the demand"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+        time: "http://www.w3.org/2006/time#"
+      pattern:
+        - " ?request rdf:type s4ener:FlexRequest ."
+        - ' ?offer rdf:type ubmarket:FlexOffer .'
+        - ' ?offer  s4ener:hasCreationTime ?timestamp . '
+        - ' ?offer  s4ener:hasEffectivePeriod ?offerperiod . '
+        - ' ?offer  s4ener:relatesToRequest ?request . '
+        - ' ?offer  s4ener:includes ?dp . '
+        - ' ?dp rdf:type s4ener:DataPoint .'
+        - ' ?dp saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?value .'
+        - ' ?dpr saref:isMeasuredIn "MegawattHour" .'
+    flex-instruction:
+      name: "flex-instruction"
+      description: "Market response to the offer."
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+        time: "http://www.w3.org/2006/time#"
+      pattern:
+        - " ?instruction rdf:type s4ener:FlexibilityInstruction ."
+        - ' ?instruction  s4ener:producedBy  ?market . '
+        - ' ?instruction s4ener:relatesToOffer  ?offer .'
+        - ' ?offer rdf:type s4ener:FlexOffer .'
+        - ' ?instruction s4ener:hasCost ?cost .'
+        - ' ?cost rdf:type s4ener:DataPoint .'
+        - ' ?cost saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?value .'
+        - ' ?dpr saref:isMeasuredIn "PLNPerMegawattHour" .'
+    request-power-consumption:
+      name: "request-power-consumption"
+      description: "Request for power consumption information - historical or predicted"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+      pattern:
+        - ' ?client rdf:type foaf:Agent .'
+        - ' ?consumption rdf:type s4ener:TimeSeries .'
+        - ' ?consumption rdf:producedBy ?client .'
+        - ' ?consumption s4ener:hasUpdateRate "PT15M"^^xsd:duration .'
+        - ' ?consumption s4ener:hasCreationTime ?consumptionStart .'
+        - ' ?consumption s4ener:hasEffectivePeriod  "PT10040M"^^xsd:duration .'
+
+    response-power-consumption:
+      name: "response-power-consumption:"
+      description: "Response for power consumption information - historical or predicted"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+      pattern:
+        - ' ?consumption rdf:type s4ener:TimeSeries .'
+        - ' ?dp s4ener:belongsToTimeSeries ?consumption .'
+        - ' ?dp rdf:type s4ener:DataPoint .'
+        - ' ?dp saref:hasTimestamp ?timestamp .'
+        - ' ?dp saref:hasResult ?dpr .'
+        - ' ?dpr saref:hasValue ?value .'
+        - ' ?dpr saref:isMeasuredIn "Megawatt" .'
+#        - '?dp s4ener:hasEffectivePeriod  "PT60M"^^xsd:duration .'
+

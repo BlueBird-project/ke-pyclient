@@ -1,0 +1,51 @@
+knowledge_engine:
+  graph_patterns:
+    market:
+      name: "market"
+      description: "Basic information about the market"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        s4ener: "https://saref.etsi.org/saref4ener"
+        s4city: "https://saref.etsi.org/s4city"
+        foaf: "http://xmlns.com/foaf/0.1/"
+        ubmarket: "https://ubflex.bluebird.eu/market"
+      pattern:
+        - ' ?country rdf:type s4city:Country .'
+        - ' ?country ubmarket:hasISO3166Name "Poland" .'
+        - ' ?market rdf:type foaf:Agent .'
+        - ' ?market s4city:hasAdministrativeArea ?country .'
+        - ' ?market rdf:type ubmarket:DayAheadMarket .'
+    market-offer:
+      name: "market-offer"
+      description: "Information about new offer"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        s4ener: "https://saref.etsi.org/saref4ener"
+        ubmarket: "https://ubflex.bluebird.eu/market"
+      pattern:
+        - ' ?market rdf:type ubmarket:DayAheadMarket .'
+        - ' ?offer rdf:type s4ener:TimeSeries .'
+        - ' ?offer s4ener:producedBy ?market .'
+        - ' ?offer s4ener:hasUpdateRate "PT60M"^^xsd:duration .'
+        - ' ?offer s4ener:hasCreationTime ?offerCreationTime .'
+        - ' ?offer s4ener:hasEffectivePeriod  "PT1440M"^^xsd:duration .'
+    market-offer-details:
+      name: "market-offer-details"
+      description: "Daily offer of the market"
+      prefixes:
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xsd: "http://www.w3.org/2001/XMLSchema#"
+        saref: "https://saref.etsi.org/core/"
+        s4ener: "https://saref.etsi.org/saref4ener"
+      pattern:
+        - '?offer rdf:type s4ener:TimeSeries .'
+        - '?dp s4ener:belongsToTimeSeries ?offer .'
+        - '?dp rdf:type s4ener:DataPoint .'
+        - '?dp saref:hasTimestamp ?timestamp .'
+        - '?dp saref:hasResult ?dpr .'
+        - '?dpr saref:hasValue ?value .'
+        - '?dpr saref:isMeasuredIn "PLNPerMegawattHour" .'
+        - '?dp s4ener:hasEffectivePeriod  "PT60M"^^xsd:duration .'
+

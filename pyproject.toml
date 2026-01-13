@@ -1,0 +1,33 @@
+[project]
+#name = "ontology_schema"
+name = "ke_client"
+description = " "
+authors = [{   name = "tc", email = "tc@example.org" } ]
+dependencies = [
+    "pydantic","unidecode","pytz","rdflib","pydantic"
+]
+requires-python = ">=3.9"
+#    "python (>=2.23.0,<3.0.0)",
+[tool.poetry]
+version = "0.17.4"
+
+#[tool.poetry.dependencies]
+#python = "^3.10"
+#
+#[tool.poetry.dev-dependencies]
+#pytest = "^8.0"
+
+#[project.urls]
+#repository = "https://gitlab.pcss.pl/api/v4/projects/2530/packages/pypi/simple"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+#[build-system]
+#requires = ["setuptools"]
+#build-backend = "backend"
+#backend-path = ["_custom_build"]
+
+#[tool.poetry.group.dev.dependencies]
+#black = "^24.0"
