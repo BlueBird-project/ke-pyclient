@@ -6,9 +6,11 @@ from functools import wraps
 from logging import Logger
 from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any
 
-from ke_client import BindingsBase, KIError
+
 
 import ke_client.ke_vars as ke_vars
+from ke_client.client._ki_bindings import BindingsBase
+from ke_client.client._ki_exceptions import KIError
 
 from ke_client.client._client_base import KEClientBase
 from ke_client.client._ke_properties import KnowledgeInteractionNames
