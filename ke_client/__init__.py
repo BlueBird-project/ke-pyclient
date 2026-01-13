@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 from .utils import load_yml_obj
-from .ke_pyclient import ki_object, SplitURIBase, ki_split_uri, rdf_nil, is_nil, BindingsBase, KITypeError, KIError, \
+from .client import ki_object, SplitURIBase, ki_split_uri, rdf_nil, is_nil, BindingsBase, KITypeError, KIError, \
     KESettings, KnowledgeInteractionConfig, KEClient
 
 ke_settings = KESettings()

@@ -10,9 +10,9 @@ from ke_client import BindingsBase, KIError
 
 import ke_client.ke_vars as ke_vars
 
-from ke_client.ke_pyclient._client_base import KEClientBase
-from ke_client.ke_pyclient._ke_properties import KnowledgeInteractionNames
-from ke_client.ke_pyclient._ki_utils import init_ki_graph_pattern, verify_binding_args, syntax_bindings_verification, \
+from ke_client.client._client_base import KEClientBase
+from ke_client.client._ke_properties import KnowledgeInteractionNames
+from ke_client.client._ki_utils import init_ki_graph_pattern, verify_binding_args, syntax_bindings_verification, \
     verify_required_bindings
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, GraphPattern
 from ke_client.utils import validate_kb_id

@@ -7,7 +7,7 @@ import time
 
 from pydantic import BaseModel
 
-from ke_client.ke_pyclient._ki_utils import default_handler
+from ke_client.client._ki_utils import default_handler
 
 from requests import Response
 
