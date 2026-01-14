@@ -107,6 +107,14 @@ def verify_required_bindings(name: str, ki_bindings: Optional[List[Dict]] = None
 
 
 def ki_object(name: str, allow_partial: bool = False, result: bool = False):
+    """
+    ki_object class decorator
+    :param name: knowledge interaction name.
+    Name used in the config file, without KnowledgeInteractionTypeName prefix which is added on registration
+    :param allow_partial: don't check if all graph binding variable are included in the object
+    :param result: TRUE if KI object reflects result_pattern (instead of normal graph pattern)
+    :return:
+    """
     gp: GraphPattern = require_graph_pattern(gp_name=name)
     if not result:
         gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}

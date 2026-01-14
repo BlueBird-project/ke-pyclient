@@ -11,7 +11,7 @@ from ke_client.client._ki_bindings import BindingsBase
 from ke_client.client._ki_exceptions import KIError
 
 from ke_client.client._client_base import KEClientBase
-from ke_client.client._ke_properties import KnowledgeInteractionNames
+from ke_client.client._ke_properties import KnowledgeInteractionTypeName
 from ke_client.client._ki_utils import init_ki_graph_pattern, verify_binding_args, syntax_bindings_verification, \
     verify_required_bindings
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, GraphPattern
@@ -153,7 +153,7 @@ class KEClient(KEClientBase):
                 [Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]],
                 Callable[[List[Dict[str, Any]]], KIPostResponse]
             ]:
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionNames.POST)
+        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.POST)
         call_ctx = self._deco_ctx()
         verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx, response_class=response_class)
 
@@ -189,7 +189,7 @@ class KEClient(KEClientBase):
                 Callable[[List[Dict[str, Any]]], KIAskResponse]
             ]:
 
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionNames.ASK)
+        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ASK)
         call_ctx = self._deco_ctx()
         verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx)
 
@@ -223,7 +223,7 @@ class KEClient(KEClientBase):
         return deco
 
     def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionNames.REACT)
+        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
         call_ctx = self._deco_ctx()
         verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx, response_class=response_class)
 
@@ -257,7 +257,7 @@ class KEClient(KEClientBase):
         return deco
 
     def answer(self, name: str, args: Optional[List[str]] = None):
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionNames.ANSWER)
+        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ANSWER)
         call_ctx = self._deco_ctx()
         verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx)
 

@@ -9,7 +9,8 @@ from ke_client.utils import load_yml_obj, DictBaseSettings, validate_kb_id
 from ke_client.utils.enum_utils import EnumUtils
 import ke_client.ke_vars as ke_vars
 
-class KnowledgeInteractionNames(EnumUtils):
+
+class KnowledgeInteractionTypeName(EnumUtils):
     POST = "post"
     ASK = "ask"
     REACT = "react"
