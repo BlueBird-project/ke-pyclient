@@ -1,7 +1,7 @@
 import logging
 import sys
 from types import ModuleType
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Type
 from pydantic import BaseModel
 
 from ke_client.ki_model import rdf_binding_pattern
@@ -42,7 +42,7 @@ def require_graph_pattern(gp_name) -> GraphPattern:
 
 
 def verify_binding_args(name: str, ki_binding_args: Optional[List[str]] = None, call_ctx: Optional[str] = None,
-                        response_class: Optional[BindingsBase] = None):
+                        response_class: Optional[Type[BindingsBase]] = None):
     if call_ctx is None:
         raise ValueError("None call_ctx not supported")
     gp: GraphPattern = require_graph_pattern(gp_name=name)
@@ -151,7 +151,6 @@ class _KIUtilsModule(ModuleType):
 
     def __setattr__(self, name, value):
         raise AttributeError(f"Trying to modify read-only property {name}")
-
 
 
 sys.modules[__name__] = _KIUtilsModule(__name__, **globals())

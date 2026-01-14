@@ -4,9 +4,7 @@ import threading
 import time
 from functools import wraps
 from logging import Logger
-from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any
-
-
+from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type
 
 import ke_client.ke_vars as ke_vars
 from ke_client.client._ki_bindings import BindingsBase
@@ -150,7 +148,7 @@ class KEClient(KEClientBase):
         ctx = f"{"\n".join([s.strip() for s in caller_ctx.code_context])}"
         return ctx
 
-    def post(self, name: str, args: Optional[List[str]] = None, response_class: Optional[BindingsBase] = None) -> \
+    def post(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None) -> \
             Callable[
                 [Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]],
                 Callable[[List[Dict[str, Any]]], KIPostResponse]
@@ -224,7 +222,7 @@ class KEClient(KEClientBase):
 
         return deco
 
-    def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[BindingsBase] = None):
+    def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionNames.REACT)
         call_ctx = self._deco_ctx()
         verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx, response_class=response_class)
