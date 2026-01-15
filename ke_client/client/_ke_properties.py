@@ -29,9 +29,7 @@ class KESettings(DictBaseSettings):
                                       extra="ignore")
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, model_config=SettingsConfigDict(env_prefix='KE_', env_file=ke_vars.ENV_FILE,
-                                                                env_file_encoding="utf-8",
-                                                                extra="ignore"), **kwargs)
+        super().__init__(*args, _env_file=ke_vars.ENV_FILE, **kwargs)
         if self.knowledge_base_id is not None:
             self.knowledge_base_id = validate_kb_id(self.knowledge_base_id)
 
