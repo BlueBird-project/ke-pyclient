@@ -100,6 +100,10 @@ class SplitURIBase(BaseModel):
         # setattr(self.__class__, "__uri_template_parser__", UriTemplate(uri_template=uri_template, t=self.__class__))
 
     def n3(self) -> str:
+        """
+
+        :return: string rdf uri  binding (<uri>)
+        """
         # TODO: check if class is decorated
         return self.__class__.__uri_template_parser__.n3(self)
 
@@ -111,11 +115,17 @@ class SplitURIBase(BaseModel):
 
     @property
     def uri(self) -> str:
+        """
+        :return: uri value
+        """
         # TODO: check if class is decorated
         return self.__class__.__uri_template_parser__.build(self)
 
     @property
     def uri_ref(self) -> URIRef:
+        """
+        :return: RDFUri instance
+        """
         # TODO: check if class is decorated
         return self.__class__.__uri_template_parser__.uri_ref(self)
 
