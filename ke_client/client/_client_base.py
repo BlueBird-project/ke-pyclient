@@ -292,15 +292,15 @@ class KEClientBase(BaseModel):
 
     # region handlers and REST API utils
 
-    def _handler_wrapper_(self, ki_id: str,
-                          handler: Optional[Callable[[str, Optional[Dict[str, Any]]], List[Dict[str, Any]]]] = None,
-                          bindings: Optional[Dict[str, Any]] = None):
-
-        if handler is None:
-            handler = default_handler
-        self.logger.info(f"Handler arrived: {ki_id}")
-        handler(ki_id=ki_id, bindings=bindings)
-        # handler(ki_id=ki_id, bindings=bindings)
+    # def _handler_wrapper_(self, ki_id: str,
+    #                       handler: Optional[Callable[[str, Optional[Dict[str, Any]]], List[Dict[str, Any]]]] = None,
+    #                       bindings: Optional[Dict[str, Any]] = None):
+    #
+    #     if handler is None:
+    #         handler = default_handler
+    #     self.logger.info(f"Handler arrived: {ki_id}")
+    #     handler(ki_id=ki_id, bindings=bindings)
+    #     # handler(ki_id=ki_id, bindings=bindings)
 
     def _handle_response_(self, response: requests.Response, ):
         ki_id: Optional[None] = None
@@ -312,7 +312,7 @@ class KEClientBase(BaseModel):
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
             result_bindings = ki.handler(ki_id, bindings)
-            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id)
+            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id, ki_type=ki.type)
         except Exception as ex:
             self.logger.error(
                 f"Error occurred in handle_response kb_id:{self.kb_id} ki_id:{ki_id}, "
@@ -348,16 +348,22 @@ class KEClientBase(BaseModel):
             # what in case of an error ?
             return send_request()
 
-    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id):
+    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: str):
         """
         handler request for data , for REACT/ANSWER knowledge interactions
         """
         ki_name = self._registered_ki_[ki_id].name
         logging.info(f"HANDLE REQUEST={ki_id}:{ki_name}")
+        post_json: dict
+        if ki_type == KnowledgeInteractionType.REACT:
+            post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, "resultBindingSet": bindings, }
+        else:
+            post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, }
+
         response = self._api_post_request_(endpoint=self.ke_rest_endpoint + "sc/handle",
                                            headers={"Knowledge-Base-Id": self.kb_id,
                                                     "Knowledge-Interaction-Id": ki_id, },
-                                           json={"handleRequestId": handle_request_id, "bindingSet": bindings, }, )
+                                           json=post_json, )
 
         self._assert_response_(response, gp_name=ki_name)
     # endregion
