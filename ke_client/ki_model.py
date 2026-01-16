@@ -41,9 +41,9 @@ class GraphPattern(BaseSettings):
             return
         for binding_key in self.required_bindings:
             if bindings is None:
-                raise KeyError(f"Binding key={binding_key} missing in {self.result_pattern}. ")
+                raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
             if binding_key not in bindings:
-                raise KeyError(f"Binding key={binding_key} missing in {self.result_pattern}. ")
+                raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
 
     @property
     def pattern_vars(self) -> List[str]:

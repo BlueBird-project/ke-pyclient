@@ -103,7 +103,7 @@ def verify_required_bindings(name: str, ki_bindings: Optional[List[Dict]] = None
         try:
             gp.verify_bindings(bindings=ki_binding)
         except KeyError as err:
-            raise KIError(f"Invalid ki bindings", ctx=call_ctx) from err
+            raise KIError(f"Invalid ki bindings: {err}" , ctx=call_ctx) from err
 
 
 def ki_object(name: str, allow_partial: bool = False, result: bool = False):

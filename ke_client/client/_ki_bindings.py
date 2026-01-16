@@ -55,17 +55,24 @@ class BindingsBase(BaseModel):
     def binding_keys(cls) -> list:
         return cls.model_fields.keys()
 
-    @staticmethod
-    def get_value(attr: Union[Literal, URIRef]) -> Optional[str]:
-        if type(attr) is Literal:
-            return attr.value
-        elif is_nil(attr):
-            return None
-        else:
-            raise ValueError(f"Invalid value {attr}. Expected {Literal.__module__}.{Literal.__name__}. ")
+    # @staticmethod
+    # def get_value(attr: Union[Literal, URIRef]) -> Optional[str]:
+    #     if type(attr) is Literal:
+    #         return attr.value
+    #     elif is_nil(attr):
+    #         return None
+    #     else:
+    #         raise ValueError(f"Invalid value {attr}. Expected {Literal.__module__}.{Literal.__name__}. ")
 
     @staticmethod
-    def convert_value(attr: Union[Literal, URIRef, None], converter: Callable[[str], Optional[Any]]) -> Optional[Any]:
+    def convert_value(attr: Union[Literal, URIRef, None], converter: Callable[[str], Optional[Any]] = str) \
+            -> Optional[Any]:
+        """
+        safe convert Literal (or rdf:nil type:URIRef) value
+        :param attr: Literal instance
+        :param converter: converter callable
+        :return: result of converter(value)  or None
+        """
         if attr is None:
             return None
         if type(attr) is Literal:
@@ -75,7 +82,7 @@ class BindingsBase(BaseModel):
         else:
             raise ValueError(f"Invalid value {attr}. Expected {Literal.__module__}.{Literal.__name__}. ")
 
-    def output_bindings(self ) -> dict:
+    def output_bindings(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v is not None}
     # def output_bindings(self, input_bindings) -> dict:
     #     return {k: v for k, v in self.__dict__.items() if v is not None}
