@@ -96,12 +96,18 @@ class KEClientBase(BaseModel):
             resp_content = response.json()
         except Exception as err:
             if response.text == "":
-                self.logger.warning(
-                    f"Empty response for {gp_name} with status 'OK' (HTTP 200)." +
-                    "Url: 'http://localhost:8280/rest/sc/handle'." +
-                    "It's likely to be KE server issue. ")
+                if ((response.url.startswith(self.ke_rest_endpoint))
+                        and response.url[len(self.ke_rest_endpoint):] == 'sc/handle'):
+                    # this is ok
+                    pass
+                else:
+                    self.logger.warning(
+                        f"Empty response for {gp_name} with status 'OK' (HTTP 200)." +
+                        "Url: 'http://localhost:8280/rest/sc/handle'." +
+                        "It's likely to be KE server issue. ")
             else:
-                self.logger.warning(f"{err}:  content is not JSON: {response.text}")
+                self.logger.warning(
+                    f"{err}:  content is not JSON: {response.text}, gp: {gp_name}, url: {response.url} ")
             resp_content = {}
         if "exchangeInfo" in resp_content:
             exchange_info_list = resp_content["exchangeInfo"]
@@ -307,7 +313,7 @@ class KEClientBase(BaseModel):
         try:
             handle_request = response.json()
             ki_id: str = handle_request["knowledgeInteractionId"]
-            # requestingKnowledgeBaseId: str = handle_request["requestingKnowledgeBaseId"]
+            requestingKnowledgeBaseId: str = handle_request["requestingKnowledgeBaseId"]
             handle_request_id = handle_request["handleRequestId"]
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
