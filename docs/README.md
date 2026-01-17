@@ -1,35 +1,25 @@
 # Getting started
 
-- KE server docs [docs](https://docs.knowledge-engine.eu/)
+- KE server docs [docs](https://docs.knowledge-engine.eu/) , [github](https://github.com/TNO/knowledge-engine)
 
 - KE
-  presentation [link](https://gfi1.sharepoint.com/:p:/r/sites/Smart-gridreadyandsmart-networkreadybuildings/_layouts/15/Doc.aspx?sourcedoc=%7B1123754C-280A-4EE7-A547-AA6C17B65BDE%7D&file=BlueBird-PMB-MP9-WP5-2025-09-23.pptx&action=edit&mobileredirect=true)
+  presentation [local](BlueBird-PMB-MP9-WP5-2025-09-23.pptx) , [sharepoint](https://gfi1.sharepoint.com/:p:/r/sites/Smart-gridreadyandsmart-networkreadybuildings/_layouts/15/Doc.aspx?sourcedoc=%7B1123754C-280A-4EE7-A547-AA6C17B65BDE%7D&file=BlueBird-PMB-MP9-WP5-2025-09-23.pptx&action=edit&mobileredirect=true)
 
-- REST API [documentation](./openapi-sc.yaml)
+- KE REST API [Swagger documentation](./openapi-sc.yaml)
+ 
+- install [Install](../README.md#install)
+- 
+- sample project [link](https://github.com/BlueBird-project/ke-sample-client)
 
 - Configuration [link](#configuration)
-  - Graph patterns [link](#graph-patterns)
+  - Graph patterns docs [link](#graph-patterns)
+  - Bluebird graph patterns [repository](https://github.com/BlueBird-project/knowledge-interaction-config)
+
 ## Glossary
 
 - KI - Knowledge interation
 - KE - Knowledge engine
--
-
-## Install client dependencies
-
-```
--i  https://__token__:glpat-ImK7hy9M8LSfcyRsGTCbi286MQp1OjFmNAk.01.0z15f6qqh@gitlab.pcss.pl/api/v4/projects/2735/packages/pypi/simple
-ke_client==0.5.15
-```
-Add extra index to the client repository
-``` 
---extra-index-url https://__token__:glpat-ImK7hy9M8LSfcyRsGTCbi286MQp1OjFmNAk.01.0z15f6qqh@gitlab.pcss.pl/api/v4/projects/2735/packages/pypi/simple
-
-```
-install
-``` 
-pip install ke_client==0.16.1
-```
+- 
 
 
 ## Configuration
