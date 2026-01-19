@@ -51,7 +51,7 @@ class DictBaseSettings(MergeConfigMixin, BaseSettings):
         # The order of the returned callables decides the priority of inputs; first item is the highest priority
         return (
             env_settings,  # highest priority , default .env and loaded environemnt var
-            dict_source,  # custome settings
+            dict_source,  # custom settings
             dotenv_settings,  # custom .env file
             init_settings,  # __init__ args
         )
@@ -120,9 +120,11 @@ def _load_yml(config_path, section, file_vars: Optional[Dict] = None):
 
 
 def validate_kb_id(uri: str) -> str:
+    if uri is None:
+        raise KeyError("knowledge_base_id field of KESettings is None")
     result = urlparse(uri)
     if result.scheme not in ["http", "https"]:
-        raise Exception(f"invalid uri scheme {result.scheme} in {uri}")
+        raise ValueError(f"Invalid uri scheme {result.scheme} in {uri}")
     if result.path.endswith("/"):
         return result.scheme + "://" + result.netloc + result.path[:-1]
     return result.scheme + "://" + result.netloc + result.path

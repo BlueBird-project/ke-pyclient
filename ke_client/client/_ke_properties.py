@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Dict, Any
 
 from pydantic import Field, Extra
@@ -40,7 +41,8 @@ class KESettings(DictBaseSettings):
         else:
             ki_vars = {}
         if self.knowledge_base_id is None:
-            raise Exception("Unknown base id")
+            logging.warning("knowledge_base_id field of KESettings is None")
+            # raise Exception("knowledge_base_id field of KESettings is None")
         if self.ki_config_vars_path is None:
             return {**ki_vars, **{"KB_ID": self.knowledge_base_id}}
         else:

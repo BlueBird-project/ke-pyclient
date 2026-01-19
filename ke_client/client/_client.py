@@ -4,7 +4,7 @@ import threading
 import time
 from functools import wraps
 from logging import Logger
-from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type
+from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type, get_args, get_origin
 
 import ke_client.ke_vars as ke_vars
 from ke_client.client._ki_bindings import BindingsBase
@@ -13,7 +13,7 @@ from ke_client.client._ki_exceptions import KIError
 from ke_client.client._client_base import KEClientBase
 from ke_client.client._ke_properties import KnowledgeInteractionTypeName
 from ke_client.client._ki_utils import init_ki_graph_pattern, verify_binding_args, syntax_bindings_verification, \
-    verify_required_bindings
+    verify_required_bindings, verify_input_bindings, verify_output_bindings, _wrap_returned_bindings
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, GraphPattern
 from ke_client.utils import validate_kb_id
 
@@ -21,6 +21,18 @@ P = ParamSpec("P")
 
 
 # TODO: move threading features to other module
+
+def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
+    _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
+               k in params}
+    bindings_annotation = get_origin(params["bindings"].annotation)
+    if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
+        # if "bindings" in _kwargs and issubclass(params["bindings"].annotation, BindingsBase):
+        cls_annotations = get_args(params["bindings"].annotation)
+        if len(cls_annotations) == 1 and issubclass(cls_annotations[0], BindingsBase):
+            _kwargs["bindings"] = [cls_annotations[0](**b) for b in _kwargs["bindings"]]
+    return _kwargs
+
 
 class KEClient(KEClientBase):
     # region fields
@@ -49,7 +61,8 @@ class KEClient(KEClientBase):
         if kb_id is None:
             kb_id = ke_settings.knowledge_base_id
         if kb_id is None:
-            raise Exception("Undefined knowledge_base_id. 'kb_id' and  'ke_knowledge_base_id' variable are None")
+            raise Exception(
+                "Undefined knowledge_base_id: 'kb_id' of build()   and  'ke_knowledge_base_id'  variables are None")
 
         return cls(kb_id=kb_id, ke_rest_endpoint=ke_settings.rest_endpoint, kb_name=ki.kb_name,
                    kb_description=ki.kb_description, logger=logger, prefixes=ki.prefixes)
@@ -222,33 +235,33 @@ class KEClient(KEClientBase):
 
         return deco
 
-    def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
+    # def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
+    def react(self, name: str):
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
         call_ctx = self._deco_ctx()
-        verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx, response_class=response_class)
+
+        # verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx, response_class=response_class)
 
         def deco(func: Callable[[str, Optional[Dict[str, Any]]], Union[List[Dict[str, Any]], Dict[str, Any]]]):
             func_sig = inspect.signature(func)
-            params = [k for k, param in func_sig.parameters.items() if
-                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
+            params = {k: param for k, param in func_sig.parameters.items() if
+                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
+            verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
+            wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
+                                                      call_ctx=call_ctx)
 
             def wrapper(*wrapper_args, **kwargs):
-                _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
-                           k in params}
+                # _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
+                #            k in params}
+                _kwargs = _init_ki_kwargs(wrapper_args=wrapper_args, params=params)
                 ki_id = _kwargs["ki_id"] if "ki_id" in _kwargs else None
                 post_input_bindings = _kwargs["bindings"] if "bindings" in _kwargs else None
                 # logging.info(f"REACT({name}): {ki_id}")
                 logging.info(f"REACT init bindings: {ki_id}")
                 logging.debug(f"REACT init bindings: {ki_id} :{post_input_bindings}")
-                react_bindings = func(**_kwargs)
-                if react_bindings is None:
-                    react_bindings = []
-                logging.debug(f"REACT bindings: {ki_id} = {react_bindings}")
-
-                if type(react_bindings) is not list:
-                    react_bindings = [react_bindings]
-                # verify_bindings(name=name, ki_bindings=react_bindings)
-                return react_bindings
+                react_bindings: Union[List[Dict], List[BindingsBase]] = func(**_kwargs)
+                return _wrap_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
+                                               bindings=react_bindings, ki_type=KnowledgeInteractionType.REACT)
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
             self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
@@ -263,15 +276,16 @@ class KEClient(KEClientBase):
 
         def deco(func: Callable[[str, Optional[Dict[str, Any]]], Union[List[Dict[str, Any]], Dict[str, Any]]]):
             func_sig = inspect.signature(func)
-            params = [k for k, param in func_sig.parameters.items() if
-                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
+            params = {k: param for k, param in func_sig.parameters.items() if
+                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
 
             # for k, param in func_sig.parameters.items():
             #     print(k,param)
 
             def wrapper(*wrapper_args, **kwargs):
-                _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
-                           k in params}
+                _kwargs = _init_ki_kwargs(wrapper_args=wrapper_args, params=params)
+                # _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
+                #            k in params}
                 ki_id = _kwargs["ki_id"] if "ki_id" in _kwargs else None
                 input_bindings: list[dict] = _kwargs["bindings"] if "bindings" in _kwargs else None
 

@@ -18,9 +18,15 @@ class GraphPattern(BaseSettings):
     pattern: List[str]
     result_pattern: Optional[List[str]] = None
     required_bindings: Optional[List[str]] = None
+
     #
-    # def __init__(self, **kwargs):
-    #     super().__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.required_bindings is not None:
+            for binding_key in self.required_bindings:
+                if binding_key not in self.pattern_vars:
+                    raise KeyError(
+                        f"Graph pattern's binding variables is missing required binding variable: {binding_key}")
 
     @property
     def prefixes_safe(self) -> Dict:
