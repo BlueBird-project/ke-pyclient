@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
-import ke_client
+
 from ke_client.ki_model import GraphPattern
 from ke_client.utils import load_yml_obj, DictBaseSettings, validate_kb_id
 from ke_client.utils.enum_utils import EnumUtils

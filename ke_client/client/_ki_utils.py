@@ -2,9 +2,9 @@ import inspect
 import logging
 import sys
 from types import ModuleType
-from typing import Dict, Any, List, Optional, Type, get_origin, get_args, Union
+from typing import Dict, Any, List, Optional,   get_origin, get_args, Union
 
-from deprecation import deprecated
+
 from pydantic import BaseModel
 
 from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType

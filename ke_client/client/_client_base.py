@@ -1,13 +1,12 @@
 import logging
 from logging import Logger
-from typing import Union, Callable, Dict, Optional, Any, List
+from typing import Union, Callable, Dict, Optional, Any
 from http import HTTPStatus
 import requests
 import time
 
 from pydantic import BaseModel
 
-from ke_client.client._ki_utils import default_handler
 
 from requests import Response
 
