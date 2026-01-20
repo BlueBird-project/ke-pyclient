@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional, Type, get_origin, get_args, Union
 from deprecation import deprecated
 from pydantic import BaseModel
 
-from ke_client.ki_model import rdf_binding_pattern
+from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType
 
 from ._ki_bindings import BindingsBase
 
@@ -100,12 +100,41 @@ def verify_input_bindings(name: str, params: Dict[str, inspect.Parameter], call_
         return False
 
 
-def _wrap_returned_bindings(ki_id: str, is_response_wrapped: bool,
-                            bindings: Union[List[Dict], List[BindingsBase], None], ki_type: str):
+# def _check_missing_bindings(name: str, ki_bindings: Optional[List[Dict]] = None, call_ctx: Optional[str] = None):
+#     """
+#     check if input bindings are in the graph ,bindings are verified  by the ki_object decorator
+#     :param call_ctx:
+#     :param name:
+#     :param ki_bindings:
+#     :return:
+#     """
+#
+#     if call_ctx is None:
+#         raise ValueError("None call_ctx not supported")
+#
+#     verify_required_bindings(name=name, ki_bindings=ki_bindings, call_ctx=call_ctx)
+#     gp: GraphPattern = require_graph_pattern(gp_name=name)
+#     gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}
+#     for idx, ki_binding in enumerate(ki_bindings):
+#         args_missing = [ki_arg for ki_arg in ki_binding.keys() if ki_arg not in gp_vars]
+#         if len(args_missing) > 0:
+#             raise KIError(
+#                 f" KI {name} is missing variables: "
+#                 f"{",".join([f"'{v}'" for v in args_missing])} ", ctx=call_ctx)
+
+
+def verify_output_bindings(name: str, bindings_annotation, call_ctx: Optional[str] = None) -> bool:
+    if call_ctx is None:
+        raise ValueError("None call_ctx not supported")
+    return _verify_object_bindings(ki_name=name, bindings_annotation=bindings_annotation, call_ctx=call_ctx)
+
+
+def _serialize_returned_bindings(ki_id: str, is_response_wrapped: bool,
+                                 bindings: Union[List[Dict], List[BindingsBase], None],
+                                 ki_type: str) -> List[Dict[str, str]]:
     if bindings is None:
         bindings = []
     logging.debug(f"{ki_type} bindings: {ki_id} = {bindings}")
-
     if type(bindings) is not list:
         bindings = [bindings]
     if len(bindings) == 0:
@@ -116,74 +145,40 @@ def _wrap_returned_bindings(ki_id: str, is_response_wrapped: bool,
     return bindings
 
 
-def verify_output_bindings(name: str, bindings_annotation, call_ctx: Optional[str] = None) -> bool:
-    if call_ctx is None:
-        raise ValueError("None call_ctx not supported")
-    return _verify_object_bindings(ki_name=name, bindings_annotation=bindings_annotation, call_ctx=call_ctx)
-
-
-@deprecated("swtich to verify_pattern_bindings")
-def verify_binding_args(name: str, ki_binding_args: Optional[List[str]] = None, call_ctx: Optional[str] = None,
-                        response_class: Optional[Type[BindingsBase]] = None):
+def verify_binding_args(name: str, ki_type: str, ki_bindings: Optional[List[Dict]] = None,
+                        call_ctx: Optional[str] = None):
     if call_ctx is None:
         raise ValueError("None call_ctx not supported")
     gp: GraphPattern = require_graph_pattern(gp_name=name)
-    if ki_binding_args is not None and len(ki_binding_args) > 0:
-        gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}
-        args_missing = [ki_arg for ki_arg in ki_binding_args if ki_arg not in gp_vars]
-        if len(args_missing) > 0:
-            raise KIError(f"Inconsistent args for graph '{name}':"
-                          f" {",".join([f"'{arg}'" for arg in args_missing])}", ctx=call_ctx)
-    if gp.result_pattern_value is not None and response_class is not None:
-
-        result_gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.result_pattern_value)}
-        resp_args_missing = [ki_arg for ki_arg in response_class.binding_keys() if ki_arg not in result_gp_vars]
-        if len(resp_args_missing) > 0:
-            # TODO: allow extra fields ?
-            raise KIError(f"Type: {response_class.__name__} - inconsistent response args for graph {name}:"
-                          f" {",".join([f"'{arg}'" for arg in resp_args_missing])}", ctx=call_ctx)
-        pattern_args_missing = [pattern_arg for pattern_arg in result_gp_vars if
-                                pattern_arg not in response_class.binding_keys()]
-        if len(pattern_args_missing) > 0:
-            raise KIError(f"Type: {response_class.__name__} - missing pattern's bindings response args for {name}:"
-                          f" {",".join([f"'{arg}'" for arg in resp_args_missing])}", ctx=call_ctx)
-
-
-def syntax_bindings_verification(name: str, ki_bindings: Optional[List[Dict]] = None, call_ctx: Optional[str] = None):
-    """
-    check if input bindings are in the graph pattern
-    :param call_ctx:
-    :param name:
-    :param ki_bindings:
-    :return:
-    """
-    # TODO: does KE expect always bindings ? can bindings list be none or empty
-    if call_ctx is None:
-        raise ValueError("None call_ctx not supported")
-    gp: GraphPattern = require_graph_pattern(gp_name=name)
-    gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}
-    for idx, ki_binding in enumerate(ki_bindings):
-        args_missing = [ki_arg for ki_arg in ki_binding.keys() if ki_arg not in gp_vars]
-        if len(args_missing) > 0:
-            raise KIError(f"Inconsistent args for graph {name}, bindings[{idx}]="
-                          f" {",".join([f"'{arg}'" for arg in args_missing])}", ctx=call_ctx)
-
-
-def verify_required_bindings(name: str, ki_bindings: Optional[List[Dict]] = None, call_ctx: Optional[str] = None):
-    """ verify required:  ASK,ANSWER - check if required graph patterns are included in the binding set.
-            POST,REACT  require always binding args included
-    :param call_ctx:
-    :param name:
-    :param ki_bindings:
-    :return:
-    """
-    # TODO: does KE expect always bindings ? can bindings list be none or empty
-    gp: GraphPattern = require_graph_pattern(gp_name=name)
-    if ki_bindings is None or len(ki_bindings) == 0:
+    if ki_bindings is None:
+        # todo log warning ?
         ki_bindings = [{}]
+    if ki_type == KnowledgeInteractionType.ASK:
+        _verify_required_bindings(gp=gp, ki_bindings=ki_bindings, call_ctx=call_ctx)
+    elif len(ki_bindings) > 0:
+        if ki_type == KnowledgeInteractionType.REACT:
+            gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.result_pattern_value)}
+        else:
+            gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}
+        for ki_binding in ki_bindings:
+            args_missing = [ki_arg for ki_arg in ki_binding.keys() if ki_arg not in gp_vars]
+            if len(args_missing) > 0:
+                raise KIError(
+                    f" KI {ki_type}:{name} is missing variables: "
+                    f"{",".join([f"'{v}'" for v in args_missing])} ", ctx=call_ctx)
+
+
+def _verify_required_bindings(gp: GraphPattern, ki_bindings: Optional[List[Dict]] = None,
+                              call_ctx: Optional[str] = None):
+    """
+    :param call_ctx:
+    :param gp:
+    :param ki_bindings:
+    :return:
+    """
     for ki_binding in ki_bindings:
         try:
-            gp.verify_bindings(bindings=ki_binding)
+            gp.verify_required_bindings(bindings=ki_binding)
         except KeyError as err:
             raise KIError(f"Invalid ki bindings: {err}", ctx=call_ctx) from err
 

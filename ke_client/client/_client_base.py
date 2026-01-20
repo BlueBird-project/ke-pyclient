@@ -158,9 +158,9 @@ class KEClientBase(BaseModel):
 
     # region registration private
     def _set_ki_(self, gp: GraphPattern, handler, ki_type: str):
-        ki = KnowledgeInteraction(name=gp.name, handler=handler, type=ki_type, graph_pattern=gp)
+        ki = KnowledgeInteraction(name=gp.name, handler=handler, ki_type=ki_type, graph_pattern=gp)
         if gp.name in self._client_ki_:
-            raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.type}).")
+            raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki_[gp.name] = ki
 
     def _assert_client_state_(self):
@@ -174,14 +174,14 @@ class KEClientBase(BaseModel):
             raise RuntimeError("Client is not registered")
         gp = ki.graph_pattern
 
-        if ki.type in [KnowledgeInteractionType.ASK, KnowledgeInteractionType.ANSWER]:
+        if ki.ki_type in [KnowledgeInteractionType.ASK, KnowledgeInteractionType.ANSWER]:
             graph_pattern_key = "graphPattern"
         else:
             graph_pattern_key = "argumentGraphPattern"
         prefixes = {**self.prefixes, **gp.prefixes_safe}
         body = {
             "knowledgeInteractionName": ki.name,
-            "knowledgeInteractionType": ki.type,
+            "knowledgeInteractionType": ki.ki_type,
             graph_pattern_key: gp.pattern_value,
             "prefixes": prefixes,
         }
@@ -318,7 +318,7 @@ class KEClientBase(BaseModel):
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
             result_bindings = ki.handler(ki_id, bindings)
-            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id, ki_type=ki.type)
+            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id, ki_type=ki.ki_type)
         except Exception as ex:
             self.logger.error(
                 f"Error occurred in handle_response kb_id:{self.kb_id} ki_id:{ki_id}, "

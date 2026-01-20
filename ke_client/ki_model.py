@@ -42,7 +42,7 @@ class GraphPattern(BaseSettings):
             return "\n ".join(self.result_pattern)
         return None
 
-    def verify_bindings(self, bindings: Dict[str, Any]):
+    def verify_required_bindings(self, bindings: Dict[str, Any]):
         if self.required_bindings is None:
             return
         for binding_key in self.required_bindings:
@@ -92,7 +92,7 @@ class KnowledgeInteraction(BaseModel):
         Callable[[], Union[Dict[str, Any], List[Dict[str, Any]]]],
         None
     ] = None
-    type: str
+    ki_type: str
     graph_pattern: GraphPattern
     # _is_registered_: bool = False
     _ki_id_: Optional[str] = None
@@ -159,19 +159,35 @@ class KIPostResponse(BaseModel):
             accu += ei.resultBindingSet
         return accu
 
+    def result_bindings(self, binding_obj_cls):
+        from ke_client import BindingsBase
+        if issubclass(binding_obj_cls, BindingsBase):
+            return [binding_obj_cls(**b) for b in self.resultBindingSet]
+        else:
+            raise TypeError(
+                f"invalid deserialization type: {binding_obj_cls}, expected sublass of {BindingsBase.__name__}")
+
 
 class KIAskResponse(BaseModel):
     bindingSet: List[Dict[str, Any]]
     exchangeInfo: List[AskExchangeInfo]
 
     @property
-    def binding_set(self):
+    def binding_set(self) -> List[Dict[str, Any]]:
         if len(self.bindingSet) > 0:
             return self.bindingSet
         accu: List = []
         for ei in self.exchangeInfo:
             accu += ei.bindingSet
         return accu
+
+    def bindings(self, binding_obj_cls):
+        from ke_client import BindingsBase
+        if issubclass(binding_obj_cls, BindingsBase):
+            return [binding_obj_cls(**b) for b in self.binding_set]
+        else:
+            raise TypeError(
+                f"invalid deserialization type: {binding_obj_cls}, expected sublass of {BindingsBase.__name__}")
 
 #  [ {dict: 8} {'argumentBindingSet': [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to': '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}], 'exchangeEnd': '2025-12-18T18:23:24.584+00:00', 'exchangeStart': '2025-12-18T18:23:24.574+00:00', 'initiator': 'knowledgeBase', 'knowledgeBaseId': 'http://fm.bluebird.com', 'knowledgeInteractionId': 'http://fm.bluebird.com/interaction/react-fm-ts-info-request', 'resultBindingSet': [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}], 'status': 'SUCCEEDED'}
 # 'initiator' = {str} 'knowledgeBase'
