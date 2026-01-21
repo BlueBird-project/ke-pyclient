@@ -7,7 +7,6 @@ import time
 
 from pydantic import BaseModel
 
-
 from requests import Response
 
 import ke_client.client._ke_rest_response_errors as response_errors
@@ -312,12 +311,13 @@ class KEClientBase(BaseModel):
         try:
             handle_request = response.json()
             ki_id: str = handle_request["knowledgeInteractionId"]
-            requestingKnowledgeBaseId: str = handle_request["requestingKnowledgeBaseId"]
+            # requestingKnowledgeBaseId: str = handle_request["requestingKnowledgeBaseId"]
             handle_request_id = handle_request["handleRequestId"]
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
             result_bindings = ki.handler(ki_id, bindings)
-            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id, ki_type=ki.ki_type)
+            self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id,
+                          ki_type=ki.ki_type)
         except Exception as ex:
             self.logger.error(
                 f"Error occurred in handle_response kb_id:{self.kb_id} ki_id:{ki_id}, "

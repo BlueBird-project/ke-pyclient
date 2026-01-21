@@ -4,7 +4,7 @@ import threading
 import time
 from functools import wraps
 from logging import Logger
-from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type, get_args, get_origin, \
+from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, get_args, get_origin, \
     Iterable, Tuple, TypeAlias
 
 import ke_client.ke_vars as ke_vars
@@ -200,8 +200,8 @@ class KEClient(KEClientBase):
         def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIPostResponse]:
             self._set_ki_(gp=gp, handler=func, ki_type=KnowledgeInteractionType.POST)
             func_sig = inspect.signature(func)
-            params = {k: param for k, param in func_sig.parameters.items() if
-                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
+            # params = {k: param for k, param in func_sig.parameters.items() if
+            #           param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
             # verify schema
             # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
             wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
@@ -239,8 +239,8 @@ class KEClient(KEClientBase):
 
         def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIAskResponse]:
             func_sig = inspect.signature(func)
-            params = {k: param for k, param in func_sig.parameters.items() if
-                      param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
+            # params = {k: param for k, param in func_sig.parameters.items() if
+            #           param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
             # verify schema
             # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
             wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
@@ -278,8 +278,8 @@ class KEClient(KEClientBase):
         return deco
 
     # def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
-    def react(self, name: str) -> Callable[
-        [Callable[[str, Optional[KIBindings]], KIBindings]], Callable[[str, Optional[KIBindings]], KIBindings]]:
+    def react(self, name: str) -> Callable[[Callable[[str, Optional[KIBindings]], KIBindings]], \
+            Callable[[str, Optional[KIBindings]], KIBindings]]:
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
         call_ctx = self._deco_ctx()
 
