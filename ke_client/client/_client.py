@@ -4,8 +4,8 @@ import threading
 import time
 from functools import wraps
 from logging import Logger
-from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type, get_args, get_origin,  \
-    Iterable, Tuple
+from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, Type, get_args, get_origin, \
+    Iterable, Tuple, TypeAlias
 
 import ke_client.ke_vars as ke_vars
 from ke_client.client._ki_bindings import BindingsBase
@@ -19,6 +19,7 @@ from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskRe
 from ke_client.utils import validate_kb_id
 
 P = ParamSpec("P")
+KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 
 
 # TODO: move threading features to other module
@@ -188,22 +189,21 @@ class KEClient(KEClientBase):
         ctx = f"{"\n".join([s.strip() for s in caller_ctx.code_context])}"
         return ctx
 
-    def post(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None) -> \
+    def post(self, name: str) -> \
             Callable[
-                [Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]],
-                Callable[[List[Dict[str, Any]]], KIPostResponse]
-            ]:
+                [
+                    [Callable[[...], KIBindings]],
+                ], Callable[[...], KIPostResponse]]:
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.POST)
         call_ctx = self._deco_ctx()
 
-        def deco(func: Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]) -> \
-                Callable[[List[Dict[str, Any]]], KIPostResponse]:
+        def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIPostResponse]:
             self._set_ki_(gp=gp, handler=func, ki_type=KnowledgeInteractionType.POST)
             func_sig = inspect.signature(func)
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
             # verify schema
-            verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
+            # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
             wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
                                                       call_ctx=call_ctx)
 
@@ -222,27 +222,27 @@ class KEClient(KEClientBase):
                                     call_ctx=call_ctx)
                 ki_post_response: KIPostResponse = self._post_(bindings=post_bindings, ki_id=ki_id)
                 return ki_post_response
+
             return wrapper
+
         return deco
 
     def ask(self, name: str) -> \
             Callable[
-                [Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]],
-                Callable[[List[Dict[str, Any]]], KIAskResponse]
-            ]:
-
+                [
+                    [Callable[[...], KIBindings]],
+                ], Callable[[...], KIAskResponse]]:
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ASK)
         call_ctx = self._deco_ctx()
 
         # verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx)
 
-        def deco(func: Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]]) -> \
-                Callable[[List[Dict[str, Any]]], KIAskResponse]:
+        def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIAskResponse]:
             func_sig = inspect.signature(func)
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
             # verify schema
-            verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
+            # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
             wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
                                                       call_ctx=call_ctx)
             self._set_ki_(gp=gp, handler=func, ki_type=KnowledgeInteractionType.ASK)
@@ -278,11 +278,13 @@ class KEClient(KEClientBase):
         return deco
 
     # def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
-    def react(self, name: str):
+    def react(self, name: str) -> Callable[
+        [Callable[[str, Optional[KIBindings]], KIBindings]], Callable[[str, Optional[KIBindings]], KIBindings]]:
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
         call_ctx = self._deco_ctx()
 
-        def deco(func: Callable[[str, Optional[Dict[str, Any]]], Union[List[Dict[str, Any]], Dict[str, Any]]]):
+        def deco(func: Callable[[str, Optional[KIBindings]], KIBindings]) -> \
+                Callable[[str, Optional[KIBindings]], KIBindings]:
             func_sig = inspect.signature(func)
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
@@ -291,7 +293,8 @@ class KEClient(KEClientBase):
             wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
                                                       call_ctx=call_ctx)
 
-            def wrapper(*wrapper_args, **kwargs):
+            @wraps(func)
+            def wrapper(*wrapper_args, **kwargs) -> KIBindings:
                 # _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
                 #            k in params}
                 _kwargs = _init_ki_kwargs(wrapper_args=wrapper_args, params=params)
@@ -320,7 +323,7 @@ class KEClient(KEClientBase):
         gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ANSWER)
         call_ctx = self._deco_ctx()
 
-        def deco(func: Callable[[str, Optional[Dict[str, Any]]], Union[List[Dict[str, Any]], Dict[str, Any]]]):
+        def deco(func: Callable[[str, Optional[KIBindings]], KIBindings]):
             func_sig = inspect.signature(func)
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
@@ -341,8 +344,9 @@ class KEClient(KEClientBase):
 
                 answer_bindings = func(**_kwargs)
                 verify_mismatched_bindings(ki_id, input_bindings, answer_bindings)
-                ki_bindings= _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
-                                                    bindings=answer_bindings, ki_type=KnowledgeInteractionType.ANSWER)
+                ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
+                                                           bindings=answer_bindings,
+                                                           ki_type=KnowledgeInteractionType.ANSWER)
                 verify_binding_args(name=name, ki_type=KnowledgeInteractionType.REACT, ki_bindings=ki_bindings,
                                     call_ctx=call_ctx)
                 return ki_bindings

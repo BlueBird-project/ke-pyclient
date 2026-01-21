@@ -90,6 +90,7 @@ def _verify_object_bindings(ki_name: str, bindings_annotation, call_ctx: str):
 
 
 def verify_input_bindings(name: str, params: Dict[str, inspect.Parameter], call_ctx: Optional[str] = None) -> bool:
+
     if call_ctx is None:
         raise ValueError("None call_ctx not supported")
     if "bindings" in params:

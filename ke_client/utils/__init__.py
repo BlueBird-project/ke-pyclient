@@ -45,7 +45,6 @@ class DictBaseSettings(MergeConfigMixin, BaseSettings):
 
         def dict_source(**kwargs):
             return cls._dict_settings_
-            # return init_settings.init_kwargs["dict_settings"]
 
         # https://docs.pydantic.dev/latest/concepts/pydantic_settings/#customise-settings-sources
         # The order of the returned callables decides the priority of inputs; first item is the highest priority

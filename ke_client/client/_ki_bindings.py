@@ -35,6 +35,7 @@ class BindingsBase(BaseModel):
                     #     pass
         super().__init__(**rdf_nodes, **kwargs)
 
+
     def n3(self, skip_none: bool = True) -> Dict[str, str]:
         """
 

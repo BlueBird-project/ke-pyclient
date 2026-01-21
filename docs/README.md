@@ -8,13 +8,15 @@
 - KE REST API [Swagger documentation](./openapi-sc.yaml)
 
 - install [Install](../README.md#install)
--
-- sample project [link](https://github.com/BlueBird-project/ke-sample-client)
+ 
+- sample project with FM-TM interaction [link](https://github.com/BlueBird-project/ke-sample-client)
 
 - Client Configuration [link](#configuration)
-    - Graph patterns docs [link](#graph-patterns)
-    - Bluebird graph patterns [repository](https://github.com/BlueBird-project/knowledge-interaction-config)
-
+  - Graph patterns docs [link](#graph-patterns)
+  - Bluebird graph patterns [repository](https://github.com/BlueBird-project/knowledge-interaction-config)
+- Implementing the [python client](#python-client)
+  - decorating [ki methods](#decorating-ki-methods)
+  - KI data exchange [objects](#ki-objects)
 ## Glossary
 
 - KI - Knowledge interation
@@ -49,9 +51,7 @@ implemented )
 
 ### Other Properties
 
-- `config_path`(_**str**_) -  graph pattern config file path
-
- 
+- `config_path`(_**str**_) - graph pattern config file path
 
 _(TODO: describe other config fields)_
 
@@ -95,38 +95,43 @@ ke:
 - rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 - xsd: "http://www.w3.org/2001/XMLSchema#"
 - saref:
-    - saref: "https://saref.etsi.org/core"
-    - s4ener: "https://saref.etsi.org/saref4ener"
-    - s4city: "https://saref.etsi.org/s4city"
+  - saref: "https://saref.etsi.org/core"
+  - s4ener: "https://saref.etsi.org/saref4ener"
+  - s4city: "https://saref.etsi.org/s4city"
 - foaf: "http://xmlns.com/foaf/0.1/"
 - time: "http://www.w3.org/2006/time#"
 - ubmarket: "https://ubflex.bluebird.eu/market" todo: integrate with BIGG
 - om: "http://www.ontology-of-units-of-measure.org/resource/om-2/CelsiusTemperatureUnit"
+
 #### YAML config file description (*.yml):
 
 General fields:
+
 - `kb_description` - optional description of the client
 - `kb_name` - it's required by the KE server, but the KE server might allow duplicate KB names in the system
-- `graph_patterns` - dictionary of KI graphs use in the interactions between all clients registered to KE. The same pattern can be used for all kinds of knowledge interactions (ASK,POST,REACT,ANSWER).
-  KE uses semantic reasoning over interactions and tries to match graph query ( ANSWER  to ASK and REACT to POST  ) with the knowledge shared by the registered clients.
-  clients.  
+- `graph_patterns` - dictionary of KI graphs use in the interactions between all clients registered to KE. The same
+  pattern can be used for all kinds of knowledge interactions (ASK,POST,REACT,ANSWER).
+  KE uses semantic reasoning over interactions and tries to match graph query ( ANSWER to ASK and REACT to POST  ) with
+  the knowledge shared by the registered clients.
+  clients.
 - `prefixes` - list of prefixes included in all graphs
 
 Graph patterns definition:
+
 - `name` - unique name within the application
-- `description` - optional description field 
+- `description` - optional description field
 - `prefixes` - list of prefixes use in `pattern` and `result_pattern`
 - `pattern` - rdf graph pattern representing available data
-- `result_pattern` - graph pattern for REACT KI 
+- `result_pattern` - graph pattern for REACT KI
 
 ##### Example:
 
 ```yaml
-knowledge_engine: 
+knowledge_engine:
   kb_name: "fm-test-client"
   kb_description: ""
   prefixes:
-    kb: "${KB_ID}/" 
+    kb: "${KB_ID}/"
     rdfs: "<http://www.w3.org/2000/01/rdf-schema#>"
     s4ener: "https://saref.etsi.org/saref4ener/"
   graph_patterns:
@@ -148,11 +153,14 @@ knowledge_engine:
 
 
 ```
+
 #### Reasoning
-  KE server uses semantic reasoning to match patterns (e.g. matching ASK pattern with ANSWER pattern ) in the system.
-  For example to get value from temperature sensor '<temperature-sensor-1>' we can use such KI graph patterns:
+
+KE server uses semantic reasoning to match patterns (e.g. matching ASK pattern with ANSWER pattern ) in the system.
+For example to get value from temperature sensor '<temperature-sensor-1>' we can use such KI graph patterns:
 
 ANSWER KI pattern:
+
 ```text
      ?sensor rdf:type saref:Sensor . 
      ?measurement saref:measurementMadeBy <temperature-sensor-1> .
@@ -168,10 +176,11 @@ ASK KI(1):
 ```
 
 Binding set returned for the ASK KI(1):
-```json
+
+```json lines
 [
-  ...
-  { 
+  ...,
+  {
     "value": "\"12\"^^<http://www.w3.org/2001/XMLSchema#integer>",
     "measurement": "<https://test.bluebird.com/schema/posttest/measurement/662>"
   },
@@ -189,9 +198,9 @@ ASK KI(2):
 
 Binding set returned for the ASK KI(2):
 
-```json
+```json lines
 [
-  ...
+  ...,
   {
     "measurementUnit": "om:CelsiusTemperatureUnit",
     "value": "\"12\"^^<http://www.w3.org/2001/XMLSchema#integer>",
@@ -200,9 +209,7 @@ Binding set returned for the ASK KI(2):
   ...
 ]
 ```
- 
 
- 
 ## Python client
 
 ### Load custom configuration
@@ -223,14 +230,13 @@ ki_client = KEClient.build()
 
 ### Decorating KI methods
 
-
 ```python
 # `graph_name` - KI name 
 @ki_client.post("graph_name")
-def request_method(custom_arg,...):
+def request_method(custom_arg, ...):
   ...
   #  Each returned POST graph binding set must use all graph variables  (e.g. '?sensor') defined in the KI's pattern 
-  return [{"arg":"binding"}] # List of binding sets
+  return [{"arg": "binding"}]  # List of binding sets
 ```
 
 Calling defined POST KI:
@@ -247,20 +253,20 @@ For KI responses  (REACT - subscribe to POST )
 ```python
 
 @ki_client.react("graph_name")
-def on_graph_name(ki_id:str, post_bindings:List[Dict[str,Any]]):
+def on_graph_name(ki_id: str, post_bindings: List[Dict[str, Any]]):
   ...
-  #process post_bindings
-  ... 
-  #return result_pattern bindings or empty list if result_pattern is empty
-  return [{"arg":"binding"}] 
+  # process post_bindings
+  ...
+  # return result_pattern bindings or empty list if result_pattern is empty
+  return [{"arg": "binding"}] 
 ```
 
-  
 ### Register
+
 All KI's must be registered in KE, before running them.
 
 ```python
-# all decorators have to be initialized before calling `register()`
+# all decorated methods have to be initialized before calling `register()`
 ki_client.register()
 
 ``` 
@@ -269,92 +275,56 @@ ki_client.register()
 
 #### Bindings object decorator  `ki_object`
 
-`ki_object` is responsible for naming integrity between bindings variables defined in the graph pattern in the ki config file and python objects
-
+`ki_object` - KI exchange object, it is responsible for naming integrity between bindings variables defined in the graph
+pattern in the ki config file and python objects. All RDF's Uris should be of type rdflib.RDFUri. Other fields can be
+either rdflib.Literal or standard type (e.g float, int )
 
 ```python
-
+# standard graph pattern exchange object
 @ki_object("fm-ts-info-request")
 class FMTSRequest(BindingsBase):
-    ts_interval_uri: URIRef
-    ts_date_from: Literal
-    ts_date_to: Literal
+  ts_interval_uri: URIRef
+  ts_date_from: Literal
+  ts_date_to: Literal
+  some_float_value: float
 
 
+# result graph pattern exchange object
 @ki_object("fm-ts-info-request", result=True)
 class FMTSResponse(BindingsBase):
-    ts_uri: URIRef
-    ts_interval_uri: URIRef
-    # ts_usage: Union[Literal, URIRef]
-    ts_usage: URIRef
-    time_create: Literal
+  ts_uri: URIRef
+  ts_interval_uri: URIRef
+  # ts_usage: Union[Literal, URIRef]
+  ts_usage: URIRef
+  time_create: Literal
 
 
+# allow subset of graph's pattern bindings arguments (useful for ASK KI)
 @ki_object("fm-ts-info-request", allow_partial=True)
 class FMTSRequest(BindingsBase):
-    ts_date_from: Literal
-    ts_date_to: Literal
+  ts_date_from: Literal
+  ts_date_to: Literal
 
 
 ```
 
-================================
-================================
-TODO: object decorators, splituri etc
-================================
-================================
-================================
+`split_uri` - object to manage RDFUris patterns in order to meet data filtering requirements (uris can encode some
+filters ) and unify the Uris templates.
+
+For example encoding timeseries time span (start '_ts_' and duration '_period_minutes_')):
+
+```python
+from ke_client import SplitURIBase
+
+kb_id = "http://tm.example.org"
 
 
-After running 'register()' method on the client it's recommended to execute some sleep for 10-15 seconds to let the KE
-update its status  (it's some issue with KE server, it's already included in the sample project) -
-otherwise the Knowledge Interactions might behave as they weren't registered despite the fact they were.
+@ki_split_uri(uri_template=f"{kb_id}/tou" + "/${range_id}/${period_minutes}/${ts}")
+class TOUSplitURI(SplitURIBase):
+  range_id: int
+  period_minutes: int
+  ts: int
 
-### TODO: describe client_model
-
-#sample TODO:
-
-if __name__ == "__main__":
-logging.info("INIT KI")
-
-# setup ke
-
-import ke_client.ke_vars as ke_vars
-
-    ke_vars.VERIFY_SERVER_CERT = False
-    ke_vars.ENV_FILE = ".env.tm"
-    from ke_client import configure_ke_client
-
-    configure_ke_client(yml_config_path="src/config_files/tm_app_config.yml")
-
-    from src.interactions import set_tm_client
-
-    set_tm_client()
-    # set_tm_client(blocking=True)
-
-    # from src.interactions.tm_interactions import *
-
-if __name__ == "__main__":
-from src.interactions.tm_interactions import request_ts_info, request_data
-from ke_client.ki_model import KIPostResponse
-
-    from src.interactions.ki_models import FMTSResponse
-
-    while True:
-        print("tick")
-        try:
-            print("request  flexibility info")
-            r: List[FMTSResponse] = request_ts_info()
-            print("received  flexibility info")
-            print([uri.ts_uri for uri in r])
-            # raw_bindings= r.result_binding_set
-            uris = [ts_uri.ts_uri for ts_uri in r]
-            print("get flex data:")
-            data = request_data(ts_uris=uris)
-            for d in data:
-                print(f"{d.ts}: {d.value}")
-        except Exception as ex:
-            print(ex)
-
-        time.sleep(30)
-        print("tock")
+```
+ 
+ 

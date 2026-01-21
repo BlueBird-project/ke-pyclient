@@ -121,6 +121,13 @@ class SplitURIBase(BaseModel):
         # TODO: check if class is decorated
         return self.__class__.__uri_template_parser__.build(self)
 
+    def __str__(self) -> str:
+        """
+        :return: uri value
+        """
+        # TODO: check if class is decorated
+        return self.__class__.__uri_template_parser__.build(self)
+
     @property
     def uri_ref(self) -> URIRef:
         """
@@ -141,6 +148,7 @@ def ki_split_uri(uri_template: str):
     :param uri_template:
     :return:
     """
+
     # uri_pattern = re.sub(__PARAM_REGEX__, r"(?P<\1>[^/]+)", uri_template)
 
     def deco(cls: Union[Type, Type[SplitURIBase]]):
