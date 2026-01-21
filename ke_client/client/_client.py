@@ -347,7 +347,7 @@ class KEClient(KEClientBase):
                 ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
                                                            bindings=answer_bindings,
                                                            ki_type=KnowledgeInteractionType.ANSWER)
-                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.REACT, ki_bindings=ki_bindings,
+                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.ANSWER, ki_bindings=ki_bindings,
                                     call_ctx=call_ctx)
                 return ki_bindings
                 # if answer_bindings is None:
