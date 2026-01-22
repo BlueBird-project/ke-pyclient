@@ -10,21 +10,34 @@
 
 #market definitions
 ubmarket:Forecast
-    a            rdfs:Class ;
- 	rdfs:subClassOf s4ener:TimeSeries ;
-    rdfs:comment "Forecasted timeseries"@en ;
-    rdfs:label   "Forecasted" .
+    a               rdfs:Class ;
+    rdfs:subClassOf s4ener:TimeSeries ;
+    rdfs:comment    "Forecasted timeseries"@en ;
+    rdfs:label      "Forecasted" .
 
 ubmarket:MarketType
-    a            rdfs:Class ;
-	rdfs:subClassOf saref:FeatureOfInterest  ;
-    rdfs:comment "Type of the market DayAheadMarket|CapacityMarket"@en ;
-    rdfs:label   "MarketType" .
+    a               rdfs:Class ;
+    rdfs:subClassOf saref:FeatureOfInterest ;
+    rdfs:comment    "Type of the market DayAheadMarket|CapacityMarket"@en ;
+    rdfs:label      "MarketType" .
 
 ubmarket:DayAheadMarket
     a               rdfs:Class ;
     rdfs:subClassOf ubmarket:MarketType ;
     rdfs:label      "DayAheadMarket" .
+
+ubmarket:IntradayMarket
+    a               rdfs:Class ;
+    rdfs:subClassOf ubmarket:MarketType ;
+    rdfs:label      "IntradayMarket" .
+
+ubmarket:hasMarketSequence
+    a            owl:DatatypeProperty ;
+    rdfs:domain  [ a           owl:Class ;
+                   owl:unionOf ( ubmarket:DayAheadMarket ubmarket:IntradayMarket ) ] ;
+    rdfs:comment "Location of the market"@en ;
+    rdfs:range   xsd:string ;
+    rdfs:label   "hasMarketSequence" .
 
 ubmarket:CapacityMarket
     a               rdfs:Class ;
@@ -38,6 +51,13 @@ ubmarket:hasAdministrativeArea
     rdfs:comment "Location of the market"@en ;
     rdfs:range   s4city:AdministrativeArea ;
     rdfs:label   "hasAdministrativeArea" .
+
+ubmarket:hasEICCode
+    a            owl:DatatypeProperty ;
+    rdfs:domain  ubmarket:MarketType ;
+    rdfs:comment "EIC region of the market"@en ;
+    rdfs:range   xsd:string ;
+    rdfs:label   "hasEICCode" .
 
 ubmarket:hasISO3166Name
     a            owl:DatatypeProperty ;
