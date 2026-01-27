@@ -31,7 +31,7 @@ class UriTemplate(Generic[T]):
         self.__obj_attr_keys__ = inspect.signature(t).parameters.keys()
         for param_key in self.__obj_attr_keys__:
             # if param_key not in self.__uri_keys__:
-            if (param_key != 'uri' and param_key != 'uri_template' and
+            if (param_key != 'prefix' and param_key != 'uri' and param_key != 'uri_template' and
                     (not allowed_extra and param_key not in self.__uri_keys__)):
                 raise Exception(f"missing argument '{param_key}'  in template: '{uri_template}'")
         if not allowed_partial:
