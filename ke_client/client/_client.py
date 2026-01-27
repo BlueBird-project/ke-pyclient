@@ -220,7 +220,7 @@ class KEClient(KEClientBase):
                                                            ki_type=KnowledgeInteractionType.POST)
                 verify_binding_args(name=name, ki_type=KnowledgeInteractionType.POST, ki_bindings=ki_bindings,
                                     call_ctx=call_ctx)
-                ki_post_response: KIPostResponse = self._post_(bindings=post_bindings, ki_id=ki_id)
+                ki_post_response: KIPostResponse = self._post_(bindings=ki_bindings, ki_id=ki_id)
                 return ki_post_response
 
             return wrapper

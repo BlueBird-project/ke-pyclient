@@ -35,7 +35,7 @@ ubmarket:hasMarketSequence
     a            owl:DatatypeProperty ;
     rdfs:domain  [ a           owl:Class ;
                    owl:unionOf ( ubmarket:DayAheadMarket ubmarket:IntradayMarket ) ] ;
-    rdfs:comment "Location of the market"@en ;
+    rdfs:comment "Market sequence"@en ;
     rdfs:range   xsd:string ;
     rdfs:label   "hasMarketSequence" .
 
