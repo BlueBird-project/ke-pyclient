@@ -1,7 +1,7 @@
 import inspect
 import re
 from string import Template
-from typing import TypeVar, Generic, Type, Union, Callable
+from typing import TypeVar, Generic, Type, Union, Callable, Optional
 from urllib.parse import urlparse
 
 from pydantic import BaseModel
@@ -54,7 +54,8 @@ class UriTemplate(Generic[T]):
     def __str__(self):
         return f"UriTemplate parser for: {self.__uri_obj_class__} ({self.uri_template}) "
 
-    def parse(self, uri: [str, URIRef]) -> T:
+    def parse(self, uri: [str, URIRef], prefix: str = "") -> T:
+        uri = str(uri)[len(prefix):]
         matched_args = re.match(self.__uri_pattern__, uri)
         kwargs = {k: convert(v, self.__obj_attr__[k])
                   for k, v in matched_args.groupdict().items()
@@ -66,7 +67,7 @@ class UriTemplate(Generic[T]):
             return self.__uri_obj_class__(**kwargs)
         # return self.uri_type(**kwargs)
 
-    def build(self, t: T) -> str:
+    def build(self, t: T, prefix: str = "") -> str:
         uri_dict = {k: v for k, v in vars(t).items()
                     if k in self.__partial_uri_keys__}
         if not self.__allowed_none__:
@@ -79,13 +80,13 @@ class UriTemplate(Generic[T]):
                 raise ValueError(
                     f"Separator '/' not allowed for {k}  : {self.uri_template} : {self.__uri_obj_class__}")
 
-        return self.__uri_builder__(uri_dict)
+        return prefix + self.__uri_builder__(uri_dict)
 
-    def uri_ref(self, t: T) -> URIRef:
-        return URIRef(self.build(t))
+    def uri_ref(self, t: T, prefix: str = "") -> URIRef:
+        return URIRef(self.build(t, prefix=prefix))
 
-    def n3(self, t: T):
-        return self.uri_ref(t).n3()
+    def n3(self, t: T, prefix=""):
+        return self.uri_ref(t, prefix=prefix).n3()
 
 
 U = TypeVar("U", bound="SplitURIBase")
@@ -94,8 +95,17 @@ U = TypeVar("U", bound="SplitURIBase")
 class SplitURIBase(BaseModel):
     __uri_template_parser__: UriTemplate
 
-    def __init__(self, **kwargs):
+    __prefix__: str
+
+    # def __init__(self,prefix:Optional[str]=None, **kwargs):
+    def __init__(self, prefix: Optional[str] = None, **kwargs):
         # TODO: check if class is decorated
+        if prefix is None:
+            self.__prefix__ = ""
+        elif prefix.endswith("/"):
+            self.__prefix__ = prefix
+        else:
+            self.__prefix__ = prefix + "/"
         super().__init__(**kwargs)
         # setattr(self.__class__, "__uri_template_parser__", UriTemplate(uri_template=uri_template, t=self.__class__))
 
@@ -105,7 +115,7 @@ class SplitURIBase(BaseModel):
         :return: string rdf uri  binding (<uri>)
         """
         # TODO: check if class is decorated
-        return self.__class__.__uri_template_parser__.n3(self)
+        return self.__class__.__uri_template_parser__.n3(self, prefix=self.__prefix__)
 
     @staticmethod
     def normalize_kb_id(kb_id) -> str:
@@ -119,14 +129,14 @@ class SplitURIBase(BaseModel):
         :return: uri value
         """
         # TODO: check if class is decorated
-        return self.__class__.__uri_template_parser__.build(self)
+        return self.__class__.__uri_template_parser__.build(self, prefix=self.__prefix__)
 
     def __str__(self) -> str:
         """
         :return: uri value
         """
         # TODO: check if class is decorated
-        return self.__class__.__uri_template_parser__.build(self)
+        return self.__class__.__uri_template_parser__.build(self, prefix=self.__prefix__)
 
     @property
     def uri_ref(self) -> URIRef:
@@ -134,10 +144,10 @@ class SplitURIBase(BaseModel):
         :return: RDFUri instance
         """
         # TODO: check if class is decorated
-        return self.__class__.__uri_template_parser__.uri_ref(self)
+        return self.__class__.__uri_template_parser__.uri_ref(self, prefix=self.__prefix__)
 
     @classmethod
-    def parse(cls: Type[U], uri: [str, URIRef]) -> U:
+    def parse(cls: Type[U], uri: [str, URIRef], prefix: str = "") -> U:
         raise NotImplementedError(
             "Class is not decorated with '@ki_split_uri', decorate class or override 'parse' class method ")
 
@@ -158,7 +168,7 @@ def ki_split_uri(uri_template: str):
         uri_parser = UriTemplate(uri_template=uri_template, t=cls)
         setattr(cls, "__uri_template_parser__", uri_parser)
         cls.__uri_template_parser__ = uri_parser
-        cls.parse = lambda uri: uri_parser.parse(uri=uri)
+        cls.parse = lambda uri, prefix="": uri_parser.parse(uri=uri, prefix=prefix)
 
         return cls
 
