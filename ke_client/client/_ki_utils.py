@@ -2,8 +2,7 @@ import inspect
 import logging
 import sys
 from types import ModuleType
-from typing import Dict, Any, List, Optional,   get_origin, get_args, Union
-
+from typing import Dict, Any, List, Optional, get_origin, get_args, Union
 
 from pydantic import BaseModel
 
@@ -90,7 +89,6 @@ def _verify_object_bindings(ki_name: str, bindings_annotation, call_ctx: str):
 
 
 def verify_input_bindings(name: str, params: Dict[str, inspect.Parameter], call_ctx: Optional[str] = None) -> bool:
-
     if call_ctx is None:
         raise ValueError("None call_ctx not supported")
     if "bindings" in params:
@@ -158,7 +156,10 @@ def verify_binding_args(name: str, ki_type: str, ki_bindings: Optional[List[Dict
         _verify_required_bindings(gp=gp, ki_bindings=ki_bindings, call_ctx=call_ctx)
     elif len(ki_bindings) > 0:
         if ki_type == KnowledgeInteractionType.REACT:
-            gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.result_pattern_value)}
+            if gp.result_pattern_value is None:
+                gp_vars = {}
+            else:
+                gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.result_pattern_value)}
         else:
             gp_vars = {k[1:] for k in rdf_binding_pattern.findall(gp.pattern_value)}
         for ki_binding in ki_bindings:
