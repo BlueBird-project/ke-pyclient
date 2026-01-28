@@ -18,6 +18,12 @@ ubmarket:Forecast
 ubmarket:MarketTimeseries
     a               rdfs:Class ;
     rdfs:subClassOf s4ener:TimeSeries ;
+    rdfs:subClassOf [
+                        a owl:Restriction ;
+                        owl:onProperty ubmarket:hasMarketSequence ;
+                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                        owl:onDataRange xsd:string
+                    ];
     rdfs:comment    "Forecasted timeseries"@en ;
     rdfs:label      "Forecasted" .
 
@@ -37,19 +43,19 @@ ubmarket:IntradayMarket
     rdfs:subClassOf ubmarket:MarketType ;
     rdfs:label      "IntradayMarket" .
 
-#ubmarket:hasMarketSequence
-#    a            owl:DatatypeProperty ;
-#    rdfs:domain  [ a           owl:Class ;
-#                   owl:unionOf ( ubmarket:DayAheadMarket ubmarket:IntradayMarket ) ] ;
-#    rdfs:comment "Market sequence"@en ;
-#    rdfs:range   xsd:string ;
-#    rdfs:label   "hasMarketSequence" .
 ubmarket:hasMarketSequence
     a            owl:DatatypeProperty ;
-    rdfs:domain ubmarket:MarketTimeseries ;
+    rdfs:domain  [ a           owl:Class ;
+                   owl:unionOf ( ubmarket:DayAheadMarket ubmarket:IntradayMarket  ubmarket:MarketTimeseries) ] ;
     rdfs:comment "Market sequence"@en ;
     rdfs:range   xsd:string ;
     rdfs:label   "hasMarketSequence" .
+#ubmarket:hasMarketSequence
+#    a            owl:DatatypeProperty ;
+#    rdfs:domain ubmarket:MarketTimeseries ;
+#    rdfs:comment "Market sequence"@en ;
+#    rdfs:range   xsd:string ;
+#    rdfs:label   "hasMarketSequence" .
 
 ubmarket:CapacityMarket
     a               rdfs:Class ;
