@@ -100,13 +100,13 @@ class SplitURIBase(BaseModel):
     # def __init__(self,prefix:Optional[str]=None, **kwargs):
     def __init__(self, prefix: Optional[str] = None, **kwargs):
         # TODO: check if class is decorated
+        super().__init__(**kwargs)
         if prefix is None:
             self.__prefix__ = ""
         elif prefix.endswith("/"):
             self.__prefix__ = prefix
         else:
             self.__prefix__ = prefix + "/"
-        super().__init__(**kwargs)
         # setattr(self.__class__, "__uri_template_parser__", UriTemplate(uri_template=uri_template, t=self.__class__))
 
     def n3(self) -> str:
