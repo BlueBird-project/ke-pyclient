@@ -151,7 +151,7 @@ def verify_binding_args(name: str, ki_type: str, ki_bindings: Optional[List[Dict
     gp: GraphPattern = require_graph_pattern(gp_name=name)
     if ki_bindings is None:
         # todo log warning ?
-        ki_bindings = [{}]
+        ki_bindings = [ ]
     if ki_type == KnowledgeInteractionType.ASK:
         _verify_required_bindings(gp=gp, ki_bindings=ki_bindings, call_ctx=call_ctx)
     elif len(ki_bindings) > 0:
@@ -228,7 +228,7 @@ def ki_object(name: str, allow_partial: bool = False, result: bool = False):
 def default_handler(ki_id: str, bindings: Optional[Dict[str, Any]]):
     logging.warning(f"No handler for {ki_id}.")
     logging.debug(f"Bindings arrived for {ki_id}: {bindings}")
-    return [{}]
+    return [ ]
 
 
 class _KIUtilsModule(ModuleType):
