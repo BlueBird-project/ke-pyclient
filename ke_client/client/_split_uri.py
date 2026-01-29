@@ -55,6 +55,8 @@ class UriTemplate(Generic[T]):
         return f"UriTemplate parser for: {self.__uri_obj_class__} ({self.uri_template}) "
 
     def parse(self, uri: [str, URIRef], prefix: str = "") -> T:
+        if not prefix.endswith("/"):
+            prefix = prefix + "/"
         uri = str(uri)[len(prefix):]
         matched_args = re.match(self.__uri_pattern__, uri)
         kwargs = {k: convert(v, self.__obj_attr__[k])
