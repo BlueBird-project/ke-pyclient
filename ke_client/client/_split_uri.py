@@ -133,6 +133,15 @@ class SplitURIBase(BaseModel):
         # TODO: check if class is decorated
         return self.__class__.__uri_template_parser__.build(self, prefix=self.__prefix__)
 
+    def append(self, suffix: str):
+        if not suffix.startswith("/"):
+            suffix = "/" + suffix
+        uri = self.uri
+        if uri.endswith("/"):
+            return uri[:-1] + suffix
+        else:
+            return uri + suffix
+
     def __str__(self) -> str:
         """
         :return: uri value
