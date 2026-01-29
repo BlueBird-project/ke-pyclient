@@ -142,8 +142,21 @@ class SplitURIBase(BaseModel):
         else:
             return uri + suffix
 
+    @staticmethod
+    def uri_append(uri: str, suffix: str) -> str:
+        if not suffix.startswith("/"):
+            suffix = "/" + suffix
+        if uri.endswith("/"):
+            return uri[:-1] + suffix
+        else:
+            return uri + suffix
+
     def append_ref(self, suffix: str) -> URIRef:
         return URIRef(self.append(suffix))
+
+    @staticmethod
+    def uri_append_ref(uri: str, suffix: str) -> URIRef:
+        return URIRef(SplitURIBase.uri_append(uri, suffix))
 
     def __str__(self) -> str:
         """
