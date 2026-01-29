@@ -24,3 +24,16 @@ def is_rdf_literal(field_type):
         return False, type(None) in args
     else:
         return field_type is Literal, False
+
+
+def is_uri_ref(field_type):
+    origin = get_origin(field_type)
+    args = get_args(field_type)
+    if origin is Union:
+        if len(args) > 2:
+            return False
+        for t in args:
+            if t is URIRef:
+                return type(None) in args
+    else:
+        return field_type is URIRef
