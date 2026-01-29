@@ -7,6 +7,16 @@ from rdflib.util import from_n3
 from ._rdf_utils import is_nil, is_rdf_literal, is_uri_ref
 
 
+def _from_n3(k: str, v: Any, __class__):
+    try:
+        return from_n3(str(v)) if (type(v) is str or type(v) is float or type(v) is int) else v
+    except Exception as ex:
+        if is_uri_ref(__class__.__annotations__.get(k)):
+            raise Exception(f"Invalid URIRef value: {v} for  {k} in {__class__.__name__}. Cause: {ex}")
+        else:
+            raise Exception(f"RDF Node value value: {v} for  {k} in {__class__.__name__}. Cause: {ex}")
+
+
 # TODO: handle rdf graph prefixes
 class BindingsBase(BaseModel):
     """
@@ -18,13 +28,10 @@ class BindingsBase(BaseModel):
         if bindings is None:
             bindings = kwargs
             kwargs = {}
-        # validate URIRef
-        for k, v in bindings.items():
-            if type(v) is str and is_uri_ref(self.__class__.__annotations__.get(k)):
-                raise Exception(f"Invalid URIRef for: {k} in {self.__class__.__name__}, expected URIRef, actual str")
-        # init default values
+            # init default values
         rdf_nodes = {k: v.default for k, v in self.model_fields.items() if not v.is_required()}
-        rdf_nodes.update({k: from_n3(str(v)) if (type(v) is str or type(v) is float or type(v) is int) else v
+        # try convert all values into binding objects
+        rdf_nodes.update({k: _from_n3(k, v, self.__class__.__annotations__)
                           for k, v in bindings.items()})
         # rdf_literals = {k: v for k, v in self.__class__.__annotations__.items() if is_rdf_literal(v)}
         for k, rdf_node in rdf_nodes.items():
