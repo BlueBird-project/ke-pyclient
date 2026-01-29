@@ -20,7 +20,7 @@ class BindingsBase(BaseModel):
             kwargs = {}
         # validate URIRef
         for k, v in bindings.items():
-            if type(v) is str and is_uri_ref(v):
+            if type(v) is str and is_uri_ref(self.__class__.__annotations__.get(k)):
                 raise Exception(f"Invalid URIRef for: {k} in {self.__class__.__name__}, expected URIRef, actual str")
         # init default values
         rdf_nodes = {k: v.default for k, v in self.model_fields.items() if not v.is_required()}

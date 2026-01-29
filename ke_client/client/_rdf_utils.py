@@ -35,5 +35,6 @@ def is_uri_ref(field_type):
         for t in args:
             if t is URIRef:
                 return type(None) in args
+        return False
     else:
         return field_type is URIRef
