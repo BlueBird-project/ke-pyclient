@@ -62,9 +62,9 @@ class UriTemplate(Generic[T]):
                   if k in self.__obj_attr_keys__}
 
         if issubclass(self.__uri_obj_class__, SplitURIBase):
-            return self.__uri_obj_class__(uri=uri, uri_template=self.uri_template, **kwargs)
+            return self.__uri_obj_class__(uri=uri, uri_template=self.uri_template, prefix=prefix, **kwargs)
         else:
-            return self.__uri_obj_class__(**kwargs)
+            return self.__uri_obj_class__(prefix=prefix, **kwargs)
         # return self.uri_type(**kwargs)
 
     def build(self, t: T, prefix: str = "") -> str:
