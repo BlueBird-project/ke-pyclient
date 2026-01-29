@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef, Literal
 from rdflib.util import from_n3
 
-from ._rdf_utils import is_nil, is_rdf_literal, is_rdf_uri
+from ._rdf_utils import is_nil, is_rdf_literal, is_uri_ref
 
 
 # TODO: handle rdf graph prefixes
@@ -20,7 +20,7 @@ class BindingsBase(BaseModel):
             kwargs = {}
         # validate URIRef
         for k, v in bindings.items():
-            if type(v) is str and is_rdf_uri(v):
+            if type(v) is str and is_uri_ref(v):
                 raise Exception(f"Invalid URIRef for: {k} in {self.__class__.__name__}, expected URIRef, actual str")
         # init default values
         rdf_nodes = {k: v.default for k, v in self.model_fields.items() if not v.is_required()}
