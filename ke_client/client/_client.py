@@ -304,7 +304,9 @@ class KEClient(KEClientBase):
                 logging.info(f"REACT init bindings: {ki_id}")
                 # logging.debug(f"REACT init bindings: {ki_id} :{post_input_bindings}")
                 react_bindings: Union[List[Dict], List[BindingsBase]] = func(**_kwargs)
-
+                if react_bindings is None:
+                    logging.warning(f"Undefined react_bindings for {ki_id}, setting empty list")
+                    react_bindings = []
                 verify_mismatched_bindings(ki_id, post_input_bindings, react_bindings)
                 ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
                                                            bindings=react_bindings,
