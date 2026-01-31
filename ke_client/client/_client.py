@@ -22,7 +22,8 @@ from ke_client.utils import validate_kb_id
 
 P = ParamSpec("P")
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
-LiteralOpt: TypeAlias = Union[Literal, URIRef, None]
+# LiteralOpt: TypeAlias = Union[Literal, URIRef, None]
+OptionalLiteral: TypeAlias = Union[Literal, URIRef, None]
 
 
 # TODO: move threading features to other module
