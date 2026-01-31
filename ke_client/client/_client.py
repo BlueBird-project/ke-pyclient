@@ -5,7 +5,9 @@ import time
 from functools import wraps
 from logging import Logger
 from typing import Union, Callable, ParamSpec, Optional, List, Dict, Any, get_args, get_origin, \
-    Iterable, Tuple, TypeAlias
+    Iterable, Tuple, TypeAlias, Literal
+
+from rdflib import URIRef
 
 import ke_client.ke_vars as ke_vars
 from ke_client.client._ki_bindings import BindingsBase
@@ -20,6 +22,7 @@ from ke_client.utils import validate_kb_id
 
 P = ParamSpec("P")
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
+LiteralOpt: TypeAlias = Union[Literal, URIRef, None]
 
 
 # TODO: move threading features to other module
