@@ -4,17 +4,19 @@ from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef, Literal
 from rdflib.util import from_n3
 
-from ._rdf_utils import is_nil, is_rdf_literal, is_uri_ref
+from ._rdf_utils import is_nil, is_rdf_literal, is_uri_ref, rdf_nil
 
 
 def _from_n3(k: str, v: Any, __class__):
     try:
+        if v is None:
+            return rdf_nil
         return from_n3(str(v)) if (type(v) is str or type(v) is float or type(v) is int) else v
     except Exception as ex:
         if is_uri_ref(__class__.__annotations__.get(k)):
             raise Exception(f"Invalid URIRef value: {v} for  {k} in {__class__.__name__}. Cause: {ex}")
         else:
-            raise Exception(f"RDF Node value value: {v} for  {k} in {__class__.__name__}. Cause: {ex}")
+            raise Exception(f"RDF Node value: {v} for  {k} in {__class__.__name__}. Cause: {ex}")
 
 
 # TODO: handle rdf graph prefixes
@@ -35,7 +37,8 @@ class BindingsBase(BaseModel):
         # rdf_literals = {k: v for k, v in self.__class__.__annotations__.items() if is_rdf_literal(v)}
         for k, rdf_node in rdf_nodes.items():
 
-            # validate if URIRef as empty Literal is only rdf_nil
+            # validate if URIRef as empty Literal is only rdf_nil,
+            # convert rdf_nil to None
             if type(rdf_node) is URIRef:
                 is_literal, is_optional = is_rdf_literal(self.__class__.__annotations__.get(k))
                 is_node_nil = is_nil(rdf_node)
