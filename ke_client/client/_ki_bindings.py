@@ -9,8 +9,8 @@ from ._rdf_utils import is_nil, is_rdf_literal, is_uri_ref, rdf_nil
 
 def _from_n3(k: str, v: Any, __class__):
     try:
-        if v is None:
-            return rdf_nil
+        # if v is None:
+        #     return rdf_nil
         return from_n3(str(v)) if (type(v) is str or type(v) is float or type(v) is int) else v
     except Exception as ex:
         if is_uri_ref(__class__.__annotations__.get(k)):
@@ -47,6 +47,7 @@ class BindingsBase(BaseModel):
                 if is_node_nil:
                     if is_literal and is_optional:
                         rdf_nodes[k] = None
+                    rdf_nodes[k] = None
                     # else:
                     #     pass
         super().__init__(**rdf_nodes, **kwargs)
@@ -60,7 +61,7 @@ class BindingsBase(BaseModel):
         if skip_none:
             return {k: v.n3() if (type(v) is Literal or type(v) is URIRef) else str(v)
                     for k, v in self.__dict__.items() if v is not None}
-        return {k: v.n3() if (type(v) is Literal or type(v) is URIRef) else str(v)
+        return {k: v.n3() if (type(v) is Literal or type(v) is URIRef) else (str(v) if v is not None else rdf_nil.n3())
                 for k, v in self.__dict__.items()}
 
     @property
