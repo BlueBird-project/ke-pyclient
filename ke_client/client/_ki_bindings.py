@@ -43,11 +43,16 @@ class BindingsBase(BaseModel):
                 is_literal, is_optional = is_rdf_literal(self.__class__.__annotations__.get(k))
                 is_node_nil = is_nil(rdf_node)
                 if is_literal and not is_node_nil:
-                    raise Exception(f"Non nil URIRef not allowed for: {k} in {self.__class__.__name__}")
+                    raise Exception(f"Non nil URIRef not allowed for Literal: {k} in {self.__class__.__name__}")
                 if is_node_nil:
-                    if is_literal and is_optional:
+                    if is_optional:
                         rdf_nodes[k] = None
-                    rdf_nodes[k] = None
+                    else:
+                        raise Exception(f"Nil node is not allowed for non optional field ({k}) ")
+                    # if is_literal and is_optional:
+                    #     rdf_nodes[k] = None
+
+                    # rdf_nodes[k] = None
                     # else:
                     #     pass
         super().__init__(**rdf_nodes, **kwargs)
