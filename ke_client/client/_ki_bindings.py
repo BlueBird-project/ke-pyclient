@@ -41,7 +41,8 @@ class BindingsBase(BaseModel):
             # validate if URIRef as empty Literal is only rdf_nil,
             # convert rdf_nil to None
             if type(rdf_node) is URIRef:
-                is_literal, is_optional = is_rdf_literal(self.__class__.__annotations__.get(k))
+                # is_literal, is_optional = is_rdf_literal(self.__class__.__annotations__.get(k))
+                is_literal, is_optional = is_rdf_literal(self.model_fields.get(k).annotation)
                 is_node_nil = is_nil(rdf_node)
                 if is_literal and not is_node_nil:
                     raise Exception(f"Non nil URIRef not allowed for Literal: {k} in {self.__class__.__name__}")
