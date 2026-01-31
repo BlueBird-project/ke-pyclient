@@ -31,7 +31,8 @@ class BindingsBase(BaseModel):
             bindings = kwargs
             kwargs = {}
             # init default values
-        rdf_nodes = {k: v.default for k, v in self.model_fields.items() if not v.is_required()}
+        rdf_nodes = {k: v.default for k, v in self.model_fields.items() if
+                     not v.is_required() and (k in self.model_fields)}
         # try convert all values into binding objects
         rdf_nodes.update({k: _from_n3(k, v, self.__class__) for k, v in bindings.items()})
         # rdf_literals = {k: v for k, v in self.__class__.__annotations__.items() if is_rdf_literal(v)}
