@@ -25,7 +25,7 @@ ubmarket:MarketTimeseries
                         owl:onDataRange xsd:string
                     ];
     rdfs:comment    "Forecasted timeseries"@en ;
-    rdfs:label      "Forecasted" .
+    rdfs:label      "MarketTimeseries" .
 
 ubmarket:MarketType
     a               rdfs:Class ;
@@ -172,6 +172,13 @@ ubmarket:AggregationFunction
     a            rdfs:Class ;
     rdfs:comment "How power is aggregated for the baseline(max|avg)"@en ;
     rdfs:label   "AggregationFunction" .
+
+ubmarket:hasAggregationFunction
+    a           owl:ObjectProperty ;
+    rdfs:domain ubmarket:CapacityMarket ;
+    rdfs:range  ubmarket:AggregationFunction ;
+    rdfs:label  "hasAggregationFunction" .
+
 
 ubmarket:Mean
     a          owl:NamedIndividual ;
