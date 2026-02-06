@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from .utils import load_yml_obj
 from .client import ki_object, SplitURIBase, ki_split_uri, rdf_nil, is_nil, BindingsBase, KITypeError, KIError, \
-    KESettings, KnowledgeInteractionConfig, KEClient, OptionalLiteral,OptionalURIRef
+    KESettings, KnowledgeInteractionConfig, KEClient, OptionalLiteral, OptionalURIRef
 
 ke_settings = KESettings()
 ki_conf: Optional[KnowledgeInteractionConfig] = None

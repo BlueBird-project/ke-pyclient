@@ -1,6 +1,6 @@
 import logging
 from logging import Logger
-from typing import Union, Callable, Dict, Optional, Any
+from typing import Union, Callable, Dict, Optional, Any, List
 from http import HTTPStatus
 import requests
 import time
@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from requests import Response
 
 import ke_client.client._ke_rest_response_errors as response_errors
-from ke_client.ki_model import GraphPattern
 from ke_client.ki_model import KnowledgeInteractionType, KnowledgeInteraction, ExchangeInfoStatus
 import ke_client.ke_vars as ke_vars
 
@@ -64,16 +63,16 @@ class KEClientBase(BaseModel):
     # endregion
 
     # region interaction utils
-    def _assert_response_(self, response: requests.Response, gp_name: Optional[str] = None):
+    def _assert_response_(self, response: requests.Response, ki_name: Optional[str] = None):
         """
         check if the response from the knowledge engine is correct
         :param response: response from KE
-        :param gp_name: name of the method sending request to the KE
+        :param ki_name: name of the method sending request to the KE
         :return:
         """
-        gp_name = gp_name if gp_name is not None else "<none_gp_name>"
+        ki_name = ki_name if ki_name is not None else "<none_gp_name>"
         if not response.ok:
-            err = f"Invalid response for {gp_name}: {response.status_code}"
+            err = f"Invalid response for {ki_name}: {response.status_code}"
             # resp_content = None
             try:
                 resp_content = response.json()
@@ -100,24 +99,24 @@ class KEClientBase(BaseModel):
                     pass
                 else:
                     self.logger.warning(
-                        f"Empty response for {gp_name} with status 'OK' (HTTP 200)." +
+                        f"Empty response for {ki_name} with status 'OK' (HTTP 200)." +
                         "Url: 'http://localhost:8280/rest/sc/handle'." +
                         "It's likely to be KE server issue. ")
             else:
                 self.logger.warning(
-                    f"{err}:  content is not JSON: {response.text}, gp: {gp_name}, url: {response.url} ")
+                    f"{err}:  content is not JSON: {response.text}, ki: {ki_name}, url: {response.url} ")
             resp_content = {}
         if "exchangeInfo" in resp_content:
             exchange_info_list = resp_content["exchangeInfo"]
             if type(exchange_info_list) is not list:
                 raise Exception(
-                    f"Failed KI ({gp_name}) expected 'exchangeInfo' type is 'list' not '{type(exchange_info_list)}' ")
+                    f"Failed KI ({ki_name}) expected 'exchangeInfo' type is 'list' not '{type(exchange_info_list)}' ")
 
             for exchange_info in exchange_info_list:
                 if exchange_info["status"].lower() == ExchangeInfoStatus.FAILED.lower():
                     bindings = exchange_info["bindings"] if "bindings" in exchange_info else None
                     raise Exception(
-                        f"Failed KI({gp_name},status: {exchange_info["status"]}): " +
+                        f"Failed KI({ki_name},status: {exchange_info["status"]}): " +
                         f"{exchange_info["failedMessage"]}, bindings:{bindings}")
 
     # endregion
@@ -155,11 +154,14 @@ class KEClientBase(BaseModel):
         self._is_reconnecting_ = False
 
     # region registration private
-    def _set_ki_(self, gp: GraphPattern, handler, ki_type: str):
-        ki = KnowledgeInteraction(name=gp.name, handler=handler, ki_type=ki_type, graph_pattern=gp)
-        if gp.name in self._client_ki_:
+    def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
+        from ke_client.client._ki_utils import require_graph_pattern
+        gp = require_graph_pattern(gp_name)
+        ki = KnowledgeInteraction(name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
+        if ki.ki_name in self._client_ki_:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
-        self._client_ki_[gp.name] = ki
+        self._client_ki_[ki.ki_name] = ki
+        return ki
 
     def _assert_client_state_(self):
         if not self._is_registered_:
@@ -178,7 +180,7 @@ class KEClientBase(BaseModel):
             graph_pattern_key = "argumentGraphPattern"
         prefixes = {**self.prefixes, **gp.prefixes_safe}
         body = {
-            "knowledgeInteractionName": ki.name,
+            "knowledgeInteractionName": ki.ki_name,
             "knowledgeInteractionType": ki.ki_type,
             graph_pattern_key: gp.pattern_value,
             "prefixes": prefixes,
@@ -195,7 +197,7 @@ class KEClientBase(BaseModel):
             try:
                 error_message = (f"Registration failed,status_code: {response.status_code}, "
                                  f"message: {response.json()["message"]}")
-            except Exception:
+            except Exception  :
                 error_message = f"Registration failed,status_code: {response.status_code}"
             raise Exception(error_message)
         ki_id = response.json()["knowledgeInteractionId"]
@@ -323,10 +325,11 @@ class KEClientBase(BaseModel):
                 f"Error occurred in handle_response kb_id:{self.kb_id} ki_id:{ki_id}, "
                 f"status_code: {response.status_code} : {ex}")
 
-    def _api_post_request_(self, endpoint: str, headers: Dict, json: Union[list[dict[str, str]], Dict],
+    def _api_post_request_(self, endpoint: str, headers: Dict, ke_request: Union[Dict, List[dict[str, str]]],
                            register=False) -> Response:
+
         return self._http_request_wrapper(
-            send_request=lambda: requests.post(endpoint, headers=headers, json=json, verify=self._verify_cert_),
+            send_request=lambda: requests.post(endpoint, headers=headers, json=ke_request, verify=self._verify_cert_),
             endpoint=endpoint, register=register)
 
     def _api_get_request_(self, endpoint: str, headers: Dict, register=False) -> Response:
@@ -355,7 +358,7 @@ class KEClientBase(BaseModel):
 
     def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: str):
         """
-        handler request for data , for REACT/ANSWER knowledge interactions
+        REACT/ANSWER knowledge interactions handler, triggered by KE
         """
         ki_name = self._registered_ki_[ki_id].name
         logging.info(f"HANDLE REQUEST={ki_id}:{ki_name}")
@@ -363,12 +366,13 @@ class KEClientBase(BaseModel):
         if ki_type == KnowledgeInteractionType.REACT:
             post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, "resultBindingSet": bindings, }
         else:
+
             post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, }
 
         response = self._api_post_request_(endpoint=self.ke_rest_endpoint + "sc/handle",
                                            headers={"Knowledge-Base-Id": self.kb_id,
                                                     "Knowledge-Interaction-Id": ki_id, },
-                                           json=post_json, )
+                                           ke_request=post_json, )
 
-        self._assert_response_(response, gp_name=ki_name)
+        self._assert_response_(response, ki_name=ki_name)
     # endregion

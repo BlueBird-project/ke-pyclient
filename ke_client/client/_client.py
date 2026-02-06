@@ -14,10 +14,9 @@ from ke_client.client._ki_bindings import BindingsBase
 from ke_client.client._ki_exceptions import KIError, KITypeError
 
 from ke_client.client._client_base import KEClientBase
-from ke_client.client._ke_properties import KnowledgeInteractionTypeName
-from ke_client.client._ki_utils import init_ki_graph_pattern, verify_input_bindings, verify_output_bindings, \
-    _serialize_returned_bindings, verify_binding_args, _verify_required_bindings
-from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, GraphPattern
+from ke_client.client._ki_utils import verify_in_bindings_ki, verify_out_bindings_ki, _verify_required_bindings, \
+    prepare_ke_request
+from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction
 from ke_client.utils import validate_kb_id
 
 P = ParamSpec("P")
@@ -25,6 +24,7 @@ KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 # LiteralOpt: TypeAlias = Union[Literal, URIRef, None]
 OptionalLiteral: TypeAlias = Union[Literal, URIRef, None]
 OptionalURIRef: TypeAlias = Union[URIRef, None]
+KERequest: TypeAlias = Union[Dict, List[dict[str, str]]]
 
 
 # TODO: move threading features to other module
@@ -132,37 +132,38 @@ class KEClient(KEClientBase):
 
     # region interaction
 
-    def _ask_(self, bindings: list[dict[str, str]], ki_id: str, ) -> KIAskResponse:
+    def _ask_(self, bindings: KERequest, ki_id: str, ki_name: str) -> KIAskResponse:
         """
         ASK for knowledge with query bindings to receive bindings for an ASK knowledge interaction.
         """
-        ki_name = self._registered_ki_[ki_id].name
-        logging.info(f"ASK REQUEST={ki_id}:{ki_name}")
+        # ki_name = self._registered_ki_[ki_id].name
+        # logging.info(f"ASK REQUEST={ki_id}:{ki_name}")
+        logging.info(f"ASK REQUEST={ki_id} ")
         # self._assert_client_state_()
         response = self._api_post_request_(endpoint=self.ke_rest_endpoint + "sc/ask",
                                            headers={"Knowledge-Base-Id": self.kb_id, "Knowledge-Interaction-Id": ki_id},
-                                           json=bindings, )
+                                           ke_request=bindings)
 
-        self._assert_response_(response, gp_name=ki_name)
+        self._assert_response_(response, ki_name=ki_name)
         ask_response = KIAskResponse.model_validate(response.json())
 
         # return response.json()["bindingSet"]
         return ask_response
 
-    def _post_(self, bindings: list[dict[str, str]], ki_id: str, ) -> \
-            KIPostResponse:
+    def _post_(self, bindings: KERequest, ki_id: str, ki_name: str) -> KIPostResponse:
         """
         POST knowledge interactions - post bindings for defined graph pattern
         """
         gp = self._registered_ki_[ki_id].graph_pattern
         ki_name = gp.name
-        logging.info(f"POST REQUEST={ki_id}:{ki_name}")
+        logging.info(f"POST REQUEST={ki_id}")
+        # logging.info(f"POST REQUEST={ki_id}:{ki_name}")
         # self._assert_client_state_()
         response = self._api_post_request_(endpoint=self.ke_rest_endpoint + "sc/post",
                                            headers={"Knowledge-Base-Id": self.kb_id, "Knowledge-Interaction-Id": ki_id},
-                                           json=bindings, )
+                                           ke_request=bindings)
 
-        self._assert_response_(response, gp_name=ki_name)
+        self._assert_response_(response, ki_name=ki_name)
         post_response = KIPostResponse.model_validate(response.json())
 
         # result_binding_set = response.json()["resultBindingSet"]
@@ -186,7 +187,7 @@ class KEClient(KEClientBase):
     # experimental client merge
     def include(self, ki_client: 'KEClientBase'):
         for ki in ki_client.list_ki():
-            self._set_ki_(gp=ki.graph_pattern, handler=ki.handler, ki_type=ki.ki_type)
+            self._set_ki_(gp_name=ki.graph_pattern.name, handler=ki.handler, ki_type=ki.ki_type)
 
     @staticmethod
     def _deco_ctx():
@@ -199,33 +200,35 @@ class KEClient(KEClientBase):
                 [
                     [Callable[[...], KIBindings]],
                 ], Callable[[...], KIPostResponse]]:
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.POST)
+        # ki : GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.POST)
         call_ctx = self._deco_ctx()
 
         def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIPostResponse]:
-            self._set_ki_(gp=gp, handler=func, ki_type=KnowledgeInteractionType.POST)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.POST)
             func_sig = inspect.signature(func)
-            # params = {k: param for k, param in func_sig.parameters.items() if
-            #           param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
-            # verify schema
-            # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
-            wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
-                                                      call_ctx=call_ctx)
+            verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
+                                   call_ctx=call_ctx)
 
             @wraps(func)
             def wrapper(*wrapper_args, **kwargs) -> KIPostResponse:
-                ki_id = self._client_ki_[gp.name].ki_id
+                ki_id = self._client_ki_[ki.ki_name].ki_id
                 if ki_id is None:
-                    raise KIError(message=f"Empty 'ki_id' for graph pattern: {gp.name}. Is graph pattern registered? ",
-                                  ctx=call_ctx)
+                    raise KIError(
+                        message=f"Empty 'ki_id' for graph pattern: {ki.ki_name}. Is graph pattern registered? ",
+                        ctx=call_ctx)
                 logging.info(f"POST init bindings: {ki_id}")
                 post_bindings = func(*wrapper_args, **kwargs)
-                ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
-                                                           bindings=post_bindings,
-                                                           ki_type=KnowledgeInteractionType.POST)
-                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.POST, ki_bindings=ki_bindings,
-                                    call_ctx=call_ctx)
-                ki_post_response: KIPostResponse = self._post_(bindings=ki_bindings, ki_id=ki_id)
+
+                # ki_bindings = _serialize_returned_bindings(ki_id=ki_id,
+                #                                            bindings=post_bindings,
+                #                                            ki_type=KnowledgeInteractionType.POST)
+                #
+                # verify_pattern_bindings(name=name, ki_type=KnowledgeInteractionType.POST, ki_bindings=ki_bindings,
+                #                         call_ctx=call_ctx)
+
+                ke_request_json = prepare_ke_request(bindings=post_bindings, ki=ki, call_ctx=call_ctx)
+                ki_post_response: KIPostResponse = self._post_(bindings=ke_request_json, ki_id=ki_id,
+                                                               ki_name=ki.ki_name)
                 return ki_post_response
 
             return wrapper
@@ -237,43 +240,35 @@ class KEClient(KEClientBase):
                 [
                     [Callable[[...], KIBindings]],
                 ], Callable[[...], KIAskResponse]]:
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ASK)
+        # gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ASK)
         call_ctx = self._deco_ctx()
 
         # verify_binding_args(name, ki_binding_args=args, call_ctx=call_ctx)
 
         def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIAskResponse]:
             func_sig = inspect.signature(func)
-            # params = {k: param for k, param in func_sig.parameters.items() if
-            #           param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
-            # verify schema
-            # verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
-            wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
+            wrapped_response = verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                                       call_ctx=call_ctx)
-            self._set_ki_(gp=gp, handler=func, ki_type=KnowledgeInteractionType.ASK)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.ASK)
 
             @wraps(func)
             def wrapper(*wrapper_args, **kwargs) -> KIAskResponse:
-                ki_id = self._client_ki_[gp.name].ki_id
+                ki_id = self._client_ki_[ki.ki_name].ki_id
                 if ki_id is None:
-                    raise KIError(message=f"Empty 'ki_id' for graph pattern: {gp.name}. Is graph pattern registered? ",
-                                  ctx=call_ctx)
+                    raise KIError(
+                        message=f"Empty 'ki_id' for graph pattern: {ki.ki_name}. Is graph pattern registered? ",
+                        ctx=call_ctx)
 
                 logging.info(f"ASK init bindings: {ki_id}")
                 ask_bindings = func(*wrapper_args, **kwargs)
-                ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
-                                                           bindings=ask_bindings,
-                                                           ki_type=KnowledgeInteractionType.ASK)
-                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.ASK, ki_bindings=ki_bindings,
-                                    call_ctx=call_ctx)
-                # if query_bindings is None:
-                #     query_bindings = [{}]
-                # logging.debug(f"ASK bindings: {ki_id} = {query_bindings}")
-                # if type(query_bindings) is not list:
-                #     query_bindings = [query_bindings]
-                # _check_missing_bindings(name=name, ki_bindings=ki_bindings, call_ctx=call_ctx)
-                # syntax_bindings_verification(name=name, ki_bindings=query_bindings, call_ctx=call_ctx)
-                result_bindings: KIAskResponse = self._ask_(bindings=ki_bindings, ki_id=ki_id)
+                # ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
+                #                                            bindings=ask_bindings,
+                #                                            ki_type=KnowledgeInteractionType.ASK)
+                # verify_pattern_bindings(name=name, ki_type=KnowledgeInteractionType.ASK, ki_bindings=ki_bindings,
+                #                         call_ctx=call_ctx)
+                ke_request_json = prepare_ke_request(bindings=ask_bindings, ki=ki, call_ctx=call_ctx)
+
+                result_bindings: KIAskResponse = self._ask_(bindings=ke_request_json, ki_id=ki_id, ki_name=ki.ki_name)
 
                 logging.debug(f"ASK-{ki_id}-result: {result_bindings}")
                 return result_bindings
@@ -285,7 +280,7 @@ class KEClient(KEClientBase):
     # def react(self, name: str, args: Optional[List[str]] = None, response_class: Optional[Type[BindingsBase]] = None):
     def react(self, name: str) -> Callable[[Callable[[str, Optional[KIBindings]], KIBindings]], \
             Callable[[str, Optional[KIBindings]], KIBindings]]:
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
+        # gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.REACT)
         call_ctx = self._deco_ctx()
 
         def deco(func: Callable[[str, Optional[KIBindings]], KIBindings]) -> \
@@ -294,9 +289,11 @@ class KEClient(KEClientBase):
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
             # verify schema
-            verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
-            wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
-                                                      call_ctx=call_ctx)
+            verify_in_bindings_ki(gp_name=name, params=params, call_ctx=call_ctx)
+            verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
+                                   call_ctx=call_ctx)
+
+            ki: KnowledgeInteraction
 
             @wraps(func)
             def wrapper(*wrapper_args, **kwargs) -> KIBindings:
@@ -313,50 +310,51 @@ class KEClient(KEClientBase):
                     logging.warning(f"Undefined react_bindings for {ki_id}, setting empty list")
                     react_bindings = []
                 verify_mismatched_bindings(ki_id, post_input_bindings, react_bindings)
-                ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
-                                                           bindings=react_bindings,
-                                                           ki_type=KnowledgeInteractionType.REACT)
-                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.REACT, ki_bindings=ki_bindings,
-                                    call_ctx=call_ctx)
-                return ki_bindings
+                # ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
+                #                                            bindings=react_bindings,
+                #                                            ki_type=KnowledgeInteractionType.REACT)
+                # verify_pattern_bindings(name=name, ki_type=KnowledgeInteractionType.REACT, ki_bindings=ki_bindings,
+                #                         call_ctx=call_ctx)
+                ke_request_json = prepare_ke_request(bindings=react_bindings, ki=ki, call_ctx=call_ctx)
+                return ke_request_json
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
-            self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.REACT)
+            # self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
             return wrapper
 
         return deco
 
     def answer(self, name: str):
-        gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ANSWER)
+        # gp: GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.ANSWER)
         call_ctx = self._deco_ctx()
 
         def deco(func: Callable[[str, Optional[KIBindings]], KIBindings]):
             func_sig = inspect.signature(func)
             params = {k: param for k, param in func_sig.parameters.items() if
                       param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD}
-            verify_input_bindings(name=name, params=params, call_ctx=call_ctx)
-            wrapped_response = verify_output_bindings(name=name, bindings_annotation=func_sig.return_annotation,
-                                                      call_ctx=call_ctx)
+            verify_in_bindings_ki(gp_name=name, params=params, call_ctx=call_ctx)
+            verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation, call_ctx=call_ctx)
+            ki: KnowledgeInteraction
 
             def wrapper(*wrapper_args, **kwargs):
                 _kwargs = _init_ki_kwargs(wrapper_args=wrapper_args, params=params)
-                # _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
-                #            k in params}
                 ki_id = _kwargs["ki_id"] if "ki_id" in _kwargs else None
                 input_bindings: list[dict] = _kwargs["bindings"] if "bindings" in _kwargs else None
 
                 logging.info(f"ANSWER init bindings: {ki_id}")
                 logging.debug(f"ANSWER init bindings: {ki_id} :{input_bindings}")
-                _verify_required_bindings(gp=gp, ki_bindings=input_bindings, call_ctx=call_ctx)
+                _verify_required_bindings(gp=ki.graph_pattern, ki_bindings=input_bindings, call_ctx=call_ctx)
 
                 answer_bindings = func(**_kwargs)
                 verify_mismatched_bindings(ki_id, input_bindings, answer_bindings)
-                ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
-                                                           bindings=answer_bindings,
-                                                           ki_type=KnowledgeInteractionType.ANSWER)
-                verify_binding_args(name=name, ki_type=KnowledgeInteractionType.ANSWER, ki_bindings=ki_bindings,
-                                    call_ctx=call_ctx)
-                return ki_bindings
+                # ki_bindings = _serialize_returned_bindings(ki_id=ki_id, is_response_wrapped=wrapped_response,
+                #                                            bindings=answer_bindings,
+                #                                            ki_type=KnowledgeInteractionType.ANSWER)
+                # verify_pattern_bindings(name=name, ki_type=KnowledgeInteractionType.ANSWER, ki_bindings=ki_bindings,
+                #                         call_ctx=call_ctx)
+                ke_request_json = prepare_ke_request(bindings=answer_bindings, ki=ki, call_ctx=call_ctx)
+                return ke_request_json
                 # if answer_bindings is None:
                 #     answer_bindings = []
                 # if type(answer_bindings) is not list:
@@ -374,7 +372,9 @@ class KEClient(KEClientBase):
                 # return answer_bindings
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
-            self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.ANSWER)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
+                                                     ki_type=KnowledgeInteractionType.ANSWER)
+            # self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.ANSWER)
 
             return wrapper
 
