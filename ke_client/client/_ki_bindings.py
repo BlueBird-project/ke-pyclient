@@ -1,4 +1,4 @@
-from typing import Dict, Any, Union, Optional, Callable
+from typing import Dict, Any, Union, Optional, Callable, List
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef, Literal
@@ -110,3 +110,23 @@ class BindingsBase(BaseModel):
         return {k: v for k, v in self.__dict__.items() if v is not None}
     # def output_bindings(self, input_bindings) -> dict:
     #     return {k: v for k, v in self.__dict__.items() if v is not None}
+
+
+class TargetedBindings:
+    bindings: List[BindingsBase]
+    knowledge_bases: Optional[List[str]] = None
+
+    def __init__(self, bindings: List[BindingsBase], knowledge_bases: Optional[List[str]] = None):
+        self.bindings = bindings
+        self.knowledge_bases = knowledge_bases
+
+    @property
+    def json(self):
+        kb = self.knowledge_bases if self.knowledge_bases is not None else []
+        bindings = [b.n3(skip_none=False) for b in self.bindings]
+        return {
+            "recipientSelector": {
+                "knowledgeBases": kb
+            },
+            "bindingSet": bindings
+        }

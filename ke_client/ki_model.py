@@ -11,7 +11,7 @@ RDF_BINDING_REGEX = r"\?[A-Za-z_][A-Za-z0-9_]+"
 rdf_binding_pattern = re.compile(RDF_BINDING_REGEX)
 
 
-class GraphPattern(BaseSettings):
+class GraphPattern(BaseModel):
     name: str = Field(...)
     prefixes: Optional[dict] = None
     description: Optional[str] = None
@@ -86,7 +86,7 @@ class ExchangeInfoStatus(EnumUtils):
 
 
 class KnowledgeInteraction(BaseModel):
-    name: str
+    ki_name: str
     handler: Union[
         Callable[[str, Optional[List[Dict[str, Any]]]], Union[Dict[str, Any], List[Dict[str, Any]]]],
         Callable[[], Union[Dict[str, Any], List[Dict[str, Any]]]],
