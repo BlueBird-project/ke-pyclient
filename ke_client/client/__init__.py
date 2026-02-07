@@ -5,3 +5,4 @@ from ._ki_exceptions import KITypeError, KIError
 from ._ki_bindings import BindingsBase
 from ._ke_properties import KESettings, KnowledgeInteractionConfig
 from ._client import KEClient, OptionalLiteral, OptionalURIRef
+from ._ki_holder import KIHolder
