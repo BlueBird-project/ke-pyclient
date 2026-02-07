@@ -5,7 +5,7 @@ from http import HTTPStatus
 import requests
 import time
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from requests import Response
 
@@ -18,7 +18,7 @@ class KEClientBase(BaseModel):
     # region private fields
     _logger_: Logger = None
     # dictionary of the knowledge interactions used in the local service (
-    _client_ki: Dict[str, KnowledgeInteraction]
+    _client_ki: Dict[str, KnowledgeInteraction] = PrivateAttr(default_factory=dict)
     _is_registered = False
     _is_ki_registered = False
     # dictionary of the knowledge interactions registered in the KE server
@@ -34,10 +34,10 @@ class KEClientBase(BaseModel):
 
     def __init__(self,
                  verify_cert: bool = ke_vars.VERIFY_SERVER_CERT, logger: Optional[Logger] = None, **kwargs):
+        super().__init__(**kwargs)
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._client_ki = {}
-        super().__init__(**kwargs)
 
     # region ki meta
 
