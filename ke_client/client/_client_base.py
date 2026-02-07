@@ -157,7 +157,7 @@ class KEClientBase(BaseModel):
     def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
         from ke_client.client._ki_utils import require_graph_pattern
         gp = require_graph_pattern(gp_name)
-        ki = KnowledgeInteraction(name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
+        ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
         if ki.ki_name in self._client_ki_:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki_[ki.ki_name] = ki
