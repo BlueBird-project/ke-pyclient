@@ -18,7 +18,7 @@ class KEClientBase(BaseModel):
     # region private fields
     _logger_: Logger = None
     # dictionary of the knowledge interactions used in the local service (
-    _client_ki_: Dict[str, KnowledgeInteraction] = {}
+    _client_ki: Dict[str, KnowledgeInteraction]
     _is_registered_ = False
     _is_ki_registered_ = False
     # dictionary of the knowledge interactions registered in the KE server
@@ -47,12 +47,6 @@ class KEClientBase(BaseModel):
     @property
     def is_registered(self):
         return self._is_registered_ and self._is_ki_registered_
-
-    def get_ki(self, name: str):
-        return self._client_ki_[name]
-
-    def list_ki(self):
-        return self._client_ki_.values()
 
     def get_registered_ki(self, ki_id: str):
         return self._registered_ki_[ki_id]
@@ -154,14 +148,14 @@ class KEClientBase(BaseModel):
         self._is_reconnecting_ = False
 
     # region registration private
-    def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
-        from ke_client.client._ki_utils import require_graph_pattern
-        gp = require_graph_pattern(gp_name)
-        ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
-        if ki.ki_name in self._client_ki_:
-            raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
-        self._client_ki_[ki.ki_name] = ki
-        return ki
+    # def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
+    #     from ke_client.client._ki_utils import require_graph_pattern
+    #     gp = require_graph_pattern(gp_name)
+    #     ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
+    #     if ki.ki_name in self._client_ki_:
+    #         raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
+    #     self._client_ki_[ki.ki_name] = ki
+    #     return ki
 
     def _assert_client_state_(self):
         if not self._is_registered_:
@@ -197,7 +191,7 @@ class KEClientBase(BaseModel):
             try:
                 error_message = (f"Registration failed,status_code: {response.status_code}, "
                                  f"message: {response.json()["message"]}")
-            except Exception  :
+            except Exception:
                 error_message = f"Registration failed,status_code: {response.status_code}"
             raise Exception(error_message)
         ki_id = response.json()["knowledgeInteractionId"]
@@ -229,7 +223,7 @@ class KEClientBase(BaseModel):
                     ki_name = ki["knowledgeInteractionName"]
                     ki_id = ki["knowledgeInteractionId"]
                     # TODO: optional override instead deleting and re registering
-                    if ki_name in self._client_ki_:
+                    if ki_name in self._client_ki:
                         response = requests.delete(
                             self.ke_rest_endpoint + "sc/ki/",
                             headers={"Knowledge-Base-Id": self.kb_id, "Knowledge-Interaction-Id": ki_id},
@@ -245,7 +239,7 @@ class KEClientBase(BaseModel):
                         )
                         assert response.ok
                 self._registered_ki_ = {}
-                for ki in self._client_ki_.values():
+                for ki in self._client_ki.values():
                     self._register_knowledge_interaction_(ki)
             else:
                 raise Exception(f"Can't check registered interactions, response: {response.status_code}")
