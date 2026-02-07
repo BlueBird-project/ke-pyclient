@@ -65,9 +65,10 @@ def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
 
 class KIHolder:
     _client_ki: Dict[str, KnowledgeInteraction]
-    _ke_client: KERequestClient
+    _ke_client: Optional[KERequestClient]
 
     def __init__(self):
+        self._ke_client = None
         self._client_ki = {}
 
     def get_ki(self, name: str):
