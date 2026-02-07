@@ -205,7 +205,7 @@ class KIHolder:
                 return ke_request_json
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
-            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.REACT)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
             # self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
             return wrapper
 
@@ -238,7 +238,7 @@ class KIHolder:
                 return ke_request_json
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
-            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper,
                                                      ki_type=KnowledgeInteractionType.ANSWER)
 
             return wrapper
