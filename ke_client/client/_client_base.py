@@ -355,7 +355,7 @@ class KEClientBase(BaseModel):
         """
         REACT/ANSWER knowledge interactions handler, triggered by KE
         """
-        ki_name = self._registered_ki_[ki_id].name
+        ki_name = self._registered_ki_[ki_id].ki_name
         logging.info(f"HANDLE REQUEST={ki_id}:{ki_name}")
         post_json: dict
         if ki_type == KnowledgeInteractionType.REACT:
