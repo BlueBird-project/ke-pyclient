@@ -19,8 +19,8 @@ class KEClientBase(BaseModel):
     _logger_: Logger = None
     # dictionary of the knowledge interactions used in the local service (
     _client_ki: Dict[str, KnowledgeInteraction]
-    _is_registered_ = False
-    _is_ki_registered_ = False
+    _is_registered = False
+    _is_ki_registered = False
     # dictionary of the knowledge interactions registered in the KE server
     _registered_ki_: Optional[Dict[str, KnowledgeInteraction]] = None
     # verify KE certificate if SSL is on
@@ -36,6 +36,7 @@ class KEClientBase(BaseModel):
                  verify_cert: bool = ke_vars.VERIFY_SERVER_CERT, logger: Optional[Logger] = None, **kwargs):
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
+        self._client_ki = {}
         super().__init__(**kwargs)
 
     # region ki meta
@@ -46,7 +47,7 @@ class KEClientBase(BaseModel):
 
     @property
     def is_registered(self):
-        return self._is_registered_ and self._is_ki_registered_
+        return self._is_registered and self._is_ki_registered
 
     def get_registered_ki(self, ki_id: str):
         return self._registered_ki_[ki_id]
@@ -118,11 +119,11 @@ class KEClientBase(BaseModel):
     # region registration/init
 
     def register(self):
-        if not self._is_registered_:
-            self._is_ki_registered_ = False
+        if not self._is_registered:
+            self._is_ki_registered = False
             self._register_knowledge_base_()
             self._check_registered_ki_()
-            self._is_ki_registered_ = True
+            self._is_ki_registered = True
 
     def reconnect(self, timeout_s: int = 30):
         if self._is_reconnecting_:
@@ -158,13 +159,13 @@ class KEClientBase(BaseModel):
     #     return ki
 
     def _assert_client_state_(self):
-        if not self._is_registered_:
+        if not self._is_registered:
             raise RuntimeError("Client is not registered")
         if not self.state():
             raise RuntimeError("Client is not running")
 
     def _register_knowledge_interaction_(self, ki: KnowledgeInteraction) -> str:
-        if not self._is_registered_:
+        if not self._is_registered:
             raise RuntimeError("Client is not registered")
         gp = ki.graph_pattern
 
@@ -205,7 +206,7 @@ class KEClientBase(BaseModel):
         # except Exception as ex:
         #     self._logger_.error(f"Stop error: {ex}")
         self._registered_ki_ = None
-        self._is_registered_ = None
+        self._is_registered = None
         self.register()
 
     def _check_registered_ki_(self):
@@ -249,7 +250,7 @@ class KEClientBase(BaseModel):
         """
         Register a Knowledge Base with the given details at the given endpoint.
         """
-        if self._is_registered_:
+        if self._is_registered:
             self.logger.warning(f"KB {self.kb_id} has been already registered")
             return
 
@@ -277,12 +278,12 @@ class KEClientBase(BaseModel):
             # TODO handler error in response
             assert response.ok
             self.logger.info(f"KB registered:  {self.kb_id} - {self.kb_name}")
-            self._is_registered_ = True
+            self._is_registered = True
         elif response.status_code == HTTPStatus.BAD_REQUEST:
             raise Exception(f"KB registration {HTTPStatus.BAD_REQUEST}")
         elif response.status_code == HTTPStatus.OK:
             self.logger.info(f"KB is registered:  {self.kb_id} - {self.kb_name}")
-            self._is_registered_ = True
+            self._is_registered = True
         else:
             pass
 
