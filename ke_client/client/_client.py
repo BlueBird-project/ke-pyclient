@@ -99,7 +99,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
     def include(self, ki_holder: KIHolder):
         ki_holder._set_client(self)
         for ki in ki_holder.list_ki():
-            self._set_ki_(gp_name=ki.graph_pattern.name, handler=ki.handler, ki_type=ki.ki_type)
+            self._add_ki(ki=ki)
 
     # endregion
     # region KERequestClient
