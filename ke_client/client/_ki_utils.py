@@ -129,14 +129,14 @@ def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[Bindings
         Union[Dict, List[Dict[str, str]]]:
     if bindings is None:
         bindings = []
+    if type(bindings) is TargetedBindings:
+        # bindings: TargetedBindings
+        return bindings.json
     if type(bindings) is not list:
         bindings = [bindings]
     if len(bindings) == 0:
         return bindings
     # if issubclass(type(bindings ), TargetedBindings)  :
-    if type(bindings) is TargetedBindings:
-        # bindings: TargetedBindings
-        return bindings.json
     if issubclass(type(bindings[0]), BindingsBase):
         b: BindingsBase
         bindings = [b.n3(skip_none=False) for b in bindings]
