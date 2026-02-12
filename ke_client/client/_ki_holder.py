@@ -107,12 +107,12 @@ class KIHolder:
     def post(self, name: str) -> \
             Callable[
                 [
-                    [Callable[[...], KIBindings]],
-                ], Callable[[...], KIPostResponse]]:
+                    [Callable[..., KIBindings]],
+                ], Callable[..., KIPostResponse]]:
         # ki : GraphPattern = init_ki_graph_pattern(name, KnowledgeInteractionTypeName.POST)
         call_ctx = self._deco_ctx()
 
-        def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIPostResponse]:
+        def deco(func: Callable[..., KIBindings]) -> Callable[..., KIPostResponse]:
             ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.POST)
             func_sig = inspect.signature(func)
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
@@ -140,11 +140,11 @@ class KIHolder:
     def ask(self, name: str) -> \
             Callable[
                 [
-                    [Callable[[...], KIBindings]],
-                ], Callable[[...], KIAskResponse]]:
+                    [Callable[..., KIBindings]],
+                ], Callable[..., KIAskResponse]]:
         call_ctx = self._deco_ctx()
 
-        def deco(func: Callable[[...], KIBindings]) -> Callable[[...], KIAskResponse]:
+        def deco(func: Callable[..., KIBindings]) -> Callable[..., KIAskResponse]:
             func_sig = inspect.signature(func)
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                    call_ctx=call_ctx)
