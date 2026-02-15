@@ -79,10 +79,10 @@ class BaseEnum(Generic[T]):
     __names__: Iterable[str]
     __values__: Iterable[Any]
     __key__: str
-    __value__: str
+    __value__: T
 
     @property
-    def value(self):
+    def value(self) -> T:
         return self.__value__
 
     @property
@@ -133,7 +133,7 @@ class BaseEnum(Generic[T]):
         setattr(cls, "__values__", fields.values())
 
     @classmethod
-    def try_parse(cls: Type[T], s: Optional[str]) -> Optional[T]:
+    def try_parse(cls: Type[T], s: Optional[str]) -> Optional['BaseEnum']:
         if s is None:
             return None
         if hasattr(cls, s.upper()):
@@ -143,7 +143,7 @@ class BaseEnum(Generic[T]):
         return None
 
     @classmethod
-    def parse(cls: Type[T], s: str, nullable: bool = False) -> Optional[T]:
+    def parse(cls: Type[T], s: str, nullable: bool = False) ->'BaseEnum':
         if s is None:
             if not nullable:
                 raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
