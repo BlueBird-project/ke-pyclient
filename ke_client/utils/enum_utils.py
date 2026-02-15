@@ -148,7 +148,10 @@ class BaseEnum(Generic[T]):
                and not isinstance(v, type)
         }
         for k, v in fields.items():
-            setattr(cls, k, EnumItem.init_item(k, v))
+            if type(v) is EnumItem:
+                v.__key__ = k
+            else:
+                setattr(cls, k, EnumItem.init_item(k, v))
         setattr(cls, "__names__", fields.keys())
         setattr(cls, "__values__", fields.values())
 
