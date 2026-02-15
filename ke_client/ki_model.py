@@ -1,7 +1,7 @@
 import re
 from typing import Optional, Union, Callable, List, Dict, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from ke_client.utils import time_utils
 from ke_client.utils.enum_utils import EnumUtils, BaseEnum, EnumItem
@@ -85,6 +85,7 @@ class ExchangeInfoStatus(BaseEnum):
 
 
 class KnowledgeInteraction(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     ki_name: str
     handler: Union[
         Callable[[str, Optional[List[Dict[str, Any]]]], Union[Dict[str, Any], List[Dict[str, Any]]]],

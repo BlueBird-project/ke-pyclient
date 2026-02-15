@@ -134,7 +134,6 @@ class EnumItem(Generic[T]):
 
 
 class BaseEnum(Generic[T]):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
     __names__: Iterable[str]
     __values__: Iterable[T]
 
