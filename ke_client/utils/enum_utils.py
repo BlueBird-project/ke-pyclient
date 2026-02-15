@@ -1,4 +1,4 @@
-from typing import Type, Optional, List, Iterable, Any, TypeVar, Generic
+from typing import Type, Optional, List, Iterable, Any, TypeVar, Generic, Dict
 
 from pydantic import ConfigDict
 
@@ -81,6 +81,7 @@ T = TypeVar("T")
 class EnumItem(Generic[T]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     __key__: str
+    __alias__: Optional[str] = None
     __value__: T
 
     @property
@@ -111,13 +112,14 @@ class EnumItem(Generic[T]):
     def __repr__(self):
         return f'{self.__key__}.{self.__value__}'
 
-    def __init__(self, m_val: T):
+    def __init__(self, m_val: T, alias: Optional[str] = None):
         # if hasattr(m_val, "__dict__"):
         #     for key, value in m_val.__dict__.items():
         #         if not hasattr(self, key):
         #             setattr(self, key, value)
         # self.__key__ = m_key
         self.__value__ = m_val
+        self.__alias__ = alias
 
     @classmethod
     def init_item(cls, m_key: str, m_val: T) -> 'EnumItem[T]':
@@ -136,10 +138,11 @@ class EnumItem(Generic[T]):
 class BaseEnum(Generic[T]):
     __names__: Iterable[str]
     __values__: Iterable[T]
+    __aliases__: Dict[str, T]
 
     def __init_subclass__(cls):
         import inspect
-
+        cls.__aliases__ = {}
         fields = {
             k: v
             for k, v in cls.__dict__.items()
@@ -150,6 +153,8 @@ class BaseEnum(Generic[T]):
         for k, v in fields.items():
             if type(v) is EnumItem:
                 v.__key__ = k
+                if v.__alias__ is not None:
+                    cls.__aliases__[v.__alias__] = v
             else:
                 setattr(cls, k, EnumItem.init_item(k, v))
         setattr(cls, "__names__", fields.keys())
@@ -159,6 +164,8 @@ class BaseEnum(Generic[T]):
     def try_parse(cls: Type[T], s: Optional[str]) -> Optional[EnumItem[T]]:
         if s is None:
             return None
+        if s in cls.__aliases__:
+            return cls.__aliases__[s]
         if hasattr(cls, s.upper()):
             return getattr(cls, s.upper())
         if hasattr(cls, s):
@@ -171,6 +178,8 @@ class BaseEnum(Generic[T]):
             # if not nullable:
             raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
             # return None
+        if s in cls.__aliases__:
+            return cls.__aliases__[s]
         if hasattr(cls, s.upper()):
             return getattr(cls, s.upper())
         if hasattr(cls, s):
