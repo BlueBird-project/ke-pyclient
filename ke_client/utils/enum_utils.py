@@ -1,4 +1,4 @@
-from typing import Type, Optional, List, Iterable
+from typing import Type, Optional, List, Iterable, Any
 
 
 class EnumUtils:
