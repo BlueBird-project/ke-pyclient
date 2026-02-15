@@ -68,8 +68,8 @@ class KIHolder:
     _ke_client: Optional[KERequestClient]
     _kb_id: Optional[str]
 
-    @property
-    def kb_id(self):
+
+    def get_kb_id(self):
         if self._ke_client is None:
             raise ValueError("KI's weren't added to any client, use: `<KEClient>.add(<KEClientInteraction>)` ")
         return self._kb_id
