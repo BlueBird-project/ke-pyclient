@@ -113,7 +113,8 @@ class KIHolder:
         call_ctx = self._deco_ctx()
 
         def deco(func: Callable[..., KIBindings]) -> Callable[..., KIPostResponse]:
-            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.POST)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
+                                                     ki_type=KnowledgeInteractionType.POST)
             func_sig = inspect.signature(func)
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                    call_ctx=call_ctx)
@@ -148,7 +149,8 @@ class KIHolder:
             func_sig = inspect.signature(func)
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                    call_ctx=call_ctx)
-            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func, ki_type=KnowledgeInteractionType.ASK)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
+                                                     ki_type=KnowledgeInteractionType.ASK)
 
             @wraps(func)
             def wrapper(*wrapper_args, **kwargs) -> KIAskResponse:
@@ -205,7 +207,8 @@ class KIHolder:
                 return ke_request_json
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
-            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
+            ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper,
+                                                     ki_type=KnowledgeInteractionType.REACT)
             # self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
             return wrapper
 

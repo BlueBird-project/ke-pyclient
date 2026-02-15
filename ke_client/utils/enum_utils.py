@@ -108,13 +108,26 @@ class EnumItem(Generic[T]):
     def __repr__(self):
         return f'{self.__key__}.{self.__value__}'
 
-    def __init__(self, m_key, m_val: T):
+    def __init__(self, m_val: T):
         # if hasattr(m_val, "__dict__"):
         #     for key, value in m_val.__dict__.items():
         #         if not hasattr(self, key):
         #             setattr(self, key, value)
-        self.__key__ = m_key
+        # self.__key__ = m_key
         self.__value__ = m_val
+
+    @classmethod
+    def init_item(cls, m_key: str, m_val: T) -> 'EnumItem[T]':
+        # if hasattr(m_val, "__dict__"):
+        #     for key, value in m_val.__dict__.items():
+        #         if not hasattr(self, key):
+        #             setattr(self, key, value)
+        instance = cls(m_val=m_val)
+        instance.__key__ = m_key
+        return instance
+
+    # def lower(self):
+    #     return self.name.lower()
 
 
 class BaseEnum(Generic[T]):
@@ -132,7 +145,7 @@ class BaseEnum(Generic[T]):
                and not isinstance(v, type)
         }
         for k, v in fields.items():
-            setattr(cls, k, EnumItem(k, v))
+            setattr(cls, k, EnumItem.init_item(k, v))
         setattr(cls, "__names__", fields.keys())
         setattr(cls, "__values__", fields.values())
 
@@ -194,6 +207,3 @@ class BaseEnum(Generic[T]):
 #     DAY_AHEAD = MarketTypeValue(name="DayAheadMarket", uri_ref="DAYAHEAD_MARKET_TYPE")
 #     INTRADAY = MarketTypeValue(name="IntradayMarket", uri_ref="INTRADAY_MARKET_TYPE")
 #
-#     @classmethod
-#     def parse(cls, s: str, nullable: bool = False) -> Optional[EnumItem[MarketTypeValue]]:
-#         return cls.parse(s=s, nullable=nullable)

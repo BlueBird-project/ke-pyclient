@@ -108,7 +108,7 @@ class KEClientBase(BaseModel):
                     f"Failed KI ({ki_name}) expected 'exchangeInfo' type is 'list' not '{type(exchange_info_list)}' ")
 
             for exchange_info in exchange_info_list:
-                if exchange_info["status"].lower() == ExchangeInfoStatus.FAILED.lower():
+                if ExchangeInfoStatus.parse(exchange_info["status"]) == ExchangeInfoStatus.FAILED:
                     bindings = exchange_info["bindings"] if "bindings" in exchange_info else None
                     raise Exception(
                         f"Failed KI({ki_name},status: {exchange_info["status"]}): " +
@@ -176,7 +176,7 @@ class KEClientBase(BaseModel):
         prefixes = {**self.prefixes, **gp.prefixes_safe}
         body = {
             "knowledgeInteractionName": ki.ki_name,
-            "knowledgeInteractionType": ki.ki_type,
+            "knowledgeInteractionType": str(ki.ki_type),
             graph_pattern_key: gp.pattern_value,
             "prefixes": prefixes,
         }

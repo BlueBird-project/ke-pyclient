@@ -4,7 +4,7 @@ from typing import Optional, Union, Callable, List, Dict, Any
 from pydantic import BaseModel, Field
 
 from ke_client.utils import time_utils
-from ke_client.utils.enum_utils import EnumUtils, BaseEnum
+from ke_client.utils.enum_utils import EnumUtils, BaseEnum, EnumItem
 
 RDF_BINDING_REGEX = r"\?[A-Za-z_][A-Za-z0-9_]+"
 rdf_binding_pattern = re.compile(RDF_BINDING_REGEX)
@@ -72,16 +72,16 @@ class GraphPattern(BaseModel):
         return {k: v for k, v in result_binding_set.items() if k in self.result_pattern_vars}
 
 
-class KnowledgeInteractionType(EnumUtils):
-    POST = "PostKnowledgeInteraction"
-    ASK = "AskKnowledgeInteraction"
-    REACT = "ReactKnowledgeInteraction"
-    ANSWER = "AnswerKnowledgeInteraction"
+class KnowledgeInteractionType(BaseEnum):
+    POST = EnumItem("PostKnowledgeInteraction")
+    ASK = EnumItem("AskKnowledgeInteraction")
+    REACT = EnumItem("ReactKnowledgeInteraction")
+    ANSWER = EnumItem("AnswerKnowledgeInteraction")
 
 
 class ExchangeInfoStatus(BaseEnum):
-    FAILED = "FAILED"
-    SUCCEEDED = "SUCCEEDED"
+    FAILED = EnumItem("FAILED")
+    SUCCEEDED = EnumItem("SUCCEEDED")
 
 
 class KnowledgeInteraction(BaseModel):
