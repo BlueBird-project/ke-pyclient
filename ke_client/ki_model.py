@@ -91,7 +91,7 @@ class KnowledgeInteraction(BaseModel):
         Callable[[], Union[Dict[str, Any], List[Dict[str, Any]]]],
         None
     ] = None
-    ki_type: str
+    ki_type: EnumItem
     graph_pattern: GraphPattern
     # _is_registered_: bool = False
     _ki_id_: Optional[str] = None
