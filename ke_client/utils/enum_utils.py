@@ -99,7 +99,7 @@ class EnumItem(Generic[T]):
             if type(self.__value__) is str:
                 return self.__key__ == other or self.__value__ == other
             return self.__key__ == other
-        if issubclass(type(other), BaseEnum):
+        if issubclass(type(other), EnumItem):
             if type(self.__value__) is str:
                 return self.__key__ == other.__key__ or self.__value__ == other.__value__
             return self.__key__ == other.__key__
