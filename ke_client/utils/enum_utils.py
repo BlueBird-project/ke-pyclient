@@ -1,4 +1,4 @@
-from typing import Type, Optional, List, Iterable, Any
+from typing import Type, Optional, List, Iterable, Any, TypeVar, Generic
 
 
 class EnumUtils:
@@ -72,9 +72,12 @@ class EnumUtils:
                                                                                                       0] == "value"]
 
 
-class BaseEnum:
+T = TypeVar("T", bound="BaseEnum")
+
+
+class BaseEnum(Generic[T]):
     __names__: Iterable[str]
-    __values__: Iterable[str]
+    __values__: Iterable[Any]
     __key__: str
     __value__: str
 
@@ -106,7 +109,7 @@ class BaseEnum:
     def __repr__(self):
         return f'{self.__key__}.{self.__value__}'
 
-    def __init__(self, m_key, m_val):
+    def __init__(self, m_key, m_val: T):
         self.__key__ = m_key
         if hasattr(m_val, "__dict__"):
             for key, value in m_val.__dict__.items():
@@ -130,7 +133,7 @@ class BaseEnum:
         setattr(cls, "__values__", fields.values())
 
     @classmethod
-    def try_parse(cls: Type, s: Optional[str]) -> Optional[Any]:
+    def try_parse(cls: Type[T], s: Optional[str]) -> Optional[T]:
         if s is None:
             return None
         if hasattr(cls, s.upper()):
@@ -140,7 +143,7 @@ class BaseEnum:
         return None
 
     @classmethod
-    def parse(cls: Type, s: str, nullable: bool = False) -> Optional[Any]:
+    def parse(cls: Type[T], s: str, nullable: bool = False) -> Optional[T]:
         if s is None:
             if not nullable:
                 raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
@@ -156,7 +159,7 @@ class BaseEnum:
         return None
 
     @classmethod
-    def values(cls) -> Iterable[str]:
+    def values(cls: Type[T]) -> Iterable[T]:
         """
         list enum values
         """
