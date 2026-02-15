@@ -72,24 +72,20 @@ class EnumUtils:
                                                                                                       0] == "value"]
 
 
-T = TypeVar("T", bound="BaseEnum")
+T = TypeVar("T")
 
 
-class BaseEnum(Generic[T]):
-    __names__: Iterable[str]
-    __values__: Iterable[Any]
+# E = TypeVar("E", bound="EnumItem")
+class EnumItem(Generic[T]):
     __key__: str
     __value__: T
 
     @property
-    def value(self) -> T:
+    def value(self: Type[T]) -> T:
         return self.__value__
 
     @property
     def name(self):
-        return self.__key__
-
-    def __str__(self):
         return self.__key__
 
     def __hash__(self):
@@ -106,16 +102,24 @@ class BaseEnum(Generic[T]):
             return self.__key__ == other.__key__
         return self.__key__ == str(other)
 
+    def __str__(self):
+        return self.__key__
+
     def __repr__(self):
         return f'{self.__key__}.{self.__value__}'
 
     def __init__(self, m_key, m_val: T):
+        # if hasattr(m_val, "__dict__"):
+        #     for key, value in m_val.__dict__.items():
+        #         if not hasattr(self, key):
+        #             setattr(self, key, value)
         self.__key__ = m_key
-        if hasattr(m_val, "__dict__"):
-            for key, value in m_val.__dict__.items():
-                if not hasattr(self, key):
-                    setattr(self, key, value)
         self.__value__ = m_val
+
+
+class BaseEnum(Generic[T]):
+    __names__: Iterable[str]
+    __values__: Iterable[T]
 
     def __init_subclass__(cls):
         import inspect
@@ -128,12 +132,12 @@ class BaseEnum(Generic[T]):
                and not isinstance(v, type)
         }
         for k, v in fields.items():
-            setattr(cls, k, BaseEnum(k, v))
+            setattr(cls, k, EnumItem(k, v))
         setattr(cls, "__names__", fields.keys())
         setattr(cls, "__values__", fields.values())
 
     @classmethod
-    def try_parse(cls: Type[T], s: Optional[str]) -> Optional['BaseEnum']:
+    def try_parse(cls: Type[T], s: Optional[str]) -> Optional[EnumItem[T]]:
         if s is None:
             return None
         if hasattr(cls, s.upper()):
@@ -143,19 +147,26 @@ class BaseEnum(Generic[T]):
         return None
 
     @classmethod
-    def parse(cls: Type[T], s: str, nullable: bool = False) ->'BaseEnum':
+    def parse(cls: Type[T], s: str) -> EnumItem[T]:
         if s is None:
-            if not nullable:
-                raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
-            return None
+            # if not nullable:
+            raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
+            # return None
         if hasattr(cls, s.upper()):
             return getattr(cls, s.upper())
         if hasattr(cls, s):
             return getattr(cls, s)
         # if hasattr(t, s.lower()):
         #     return getattr(t,s.lower())
-        if not nullable:
-            raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
+        # if not nullable:
+        raise ValueError(f"Invalid enum value '{s}' ({cls.__name__}). ")
+        # return None
+
+    @classmethod
+    def value(cls: Type[T], s: str) -> Optional[T]:
+        v = cls.try_parse(s)
+        if v is not None:
+            return v.value
         return None
 
     @classmethod
@@ -171,3 +182,18 @@ class BaseEnum(Generic[T]):
         list enum name
         """
         return cls.__names__
+# SAMPLE:
+
+# class MarketTypeValue(BaseModel):
+#     model_config = ConfigDict(arbitrary_types_allowed=True)
+#     name: str
+#     uri_ref: str
+#
+#
+# class MarketType(BaseEnum["MarketTypeValue"]):
+#     DAY_AHEAD = MarketTypeValue(name="DayAheadMarket", uri_ref="DAYAHEAD_MARKET_TYPE")
+#     INTRADAY = MarketTypeValue(name="IntradayMarket", uri_ref="INTRADAY_MARKET_TYPE")
+#
+#     @classmethod
+#     def parse(cls, s: str, nullable: bool = False) -> Optional[EnumItem[MarketTypeValue]]:
+#         return cls.parse(s=s, nullable=nullable)
