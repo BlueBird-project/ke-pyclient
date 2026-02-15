@@ -4,7 +4,7 @@ from typing import Optional, Union, Callable, List, Dict, Any
 from pydantic import BaseModel, Field, ConfigDict
 
 from ke_client.utils import time_utils
-from ke_client.utils.enum_utils import EnumUtils, BaseEnum, EnumItem
+from ke_client.utils.enum_utils import   BaseEnum, EnumItem
 
 RDF_BINDING_REGEX = r"\?[A-Za-z_][A-Za-z0-9_]+"
 rdf_binding_pattern = re.compile(RDF_BINDING_REGEX)
