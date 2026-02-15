@@ -1,5 +1,7 @@
 from typing import Type, Optional, List, Iterable, Any, TypeVar, Generic
 
+from pydantic import ConfigDict
+
 
 class EnumUtils:
     __value__: str
@@ -77,6 +79,7 @@ T = TypeVar("T")
 
 # E = TypeVar("E", bound="EnumItem")
 class EnumItem(Generic[T]):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     __key__: str
     __value__: T
 
@@ -131,6 +134,7 @@ class EnumItem(Generic[T]):
 
 
 class BaseEnum(Generic[T]):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     __names__: Iterable[str]
     __values__: Iterable[T]
 
