@@ -22,7 +22,7 @@ def _from_n3(k: str, v: Any, __class__):
 # TODO: handle rdf graph prefixes
 class BindingsBase(BaseModel):
     """
-    KI binding object
+    KI binding object, KE server sends empty bindings object, even if no bindings had been sent by other clients
     """
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
