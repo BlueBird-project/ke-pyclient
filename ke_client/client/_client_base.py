@@ -176,7 +176,7 @@ class KEClientBase(BaseModel):
         prefixes = {**self.prefixes, **gp.prefixes_safe}
         body = {
             "knowledgeInteractionName": ki.ki_name,
-            "knowledgeInteractionType": str(ki.ki_type),
+            "knowledgeInteractionType": ki.ki_type.value,
             graph_pattern_key: gp.pattern_value,
             "prefixes": prefixes,
         }
