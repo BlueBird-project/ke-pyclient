@@ -66,6 +66,13 @@ def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
 class KIHolder:
     _client_ki: Dict[str, KnowledgeInteraction]
     _ke_client: Optional[KERequestClient]
+    _kb_id: Optional[str]
+
+    @property
+    def kb_id(self):
+        if self._ke_client is None:
+            raise ValueError("KI's weren't added to any client, use: `<KEClient>.add(<KEClientInteraction>)` ")
+        return self._kb_id
 
     def __init__(self):
         self._ke_client = None
@@ -98,10 +105,11 @@ class KIHolder:
             raise ValueError("KI's weren't added to any client, use: `<KEClient>.add(<KEClientInteraction>)` ")
         return self._ke_client
 
-    def _set_client(self, ke_client: KERequestClient):
+    def _set_client(self, kb_id: str, ke_client: KERequestClient):
         if self._ke_client is not None:
             raise ValueError("KI's have been already added to client ")
         self._ke_client = ke_client
+        self._kb_id = kb_id
 
     # region deco
     def post(self, name: str) -> \

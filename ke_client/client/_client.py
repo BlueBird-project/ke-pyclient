@@ -97,7 +97,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         self._client_ki[ki.ki_name] = ki
 
     def include(self, ki_holder: KIHolder):
-        ki_holder._set_client(self)
+        ki_holder._set_client(kb_id=self.kb_id, ke_client=self)
         for ki in ki_holder.list_ki():
             self._add_ki(ki=ki)
 
