@@ -133,7 +133,7 @@ def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[Bindings
         bindings = []
     if type(bindings) is TargetedBindings:
         # bindings: TargetedBindings
-        return bindings.json
+        return bindings.json(ki_type=ki_type)
     if type(bindings) is not list:
         bindings = [bindings]
     if len(bindings) == 0:
@@ -141,12 +141,7 @@ def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[Bindings
     # if issubclass(type(bindings ), TargetedBindings)  :
     if issubclass(type(bindings[0]), BindingsBase):
         b: BindingsBase
-        if ki_type == KnowledgeInteractionType.ASK:
-            # ASK KI allows to send part of graph pattern bindings
-            bindings = [b.n3(skip_none=True) for b in bindings]
-        else:
-            # POST, REACT, ANSWER KI require all bindings be included
-            bindings = [b.n3(skip_none=False) for b in bindings]
+        bindings = [b.serialize(ki_type=ki_type) for b in bindings]
     return bindings
 
 

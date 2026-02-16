@@ -1,5 +1,8 @@
 from typing import Dict, Any, Union, Optional, Callable, List
 
+from ke_client.utils.enum_utils import EnumItem
+
+from ke_client.ki_model import KnowledgeInteractionType
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef, Literal
 from rdflib.util import from_n3
@@ -108,8 +111,15 @@ class BindingsBase(BaseModel):
 
     def output_bindings(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v is not None}
-    # def output_bindings(self, input_bindings) -> dict:
-    #     return {k: v for k, v in self.__dict__.items() if v is not None}
+
+    def serialize(self, ki_type: EnumItem) -> Dict[str, str]:
+
+        if ki_type == KnowledgeInteractionType.ASK:
+            # ASK KI allows to send part of graph pattern bindings
+            return self.n3(skip_none=True)
+        else:
+            # POST, REACT, ANSWER KI require all bindings be included
+            return self.n3(skip_none=False)
 
 
 class TargetedBindings:
@@ -120,10 +130,11 @@ class TargetedBindings:
         self.bindings = bindings
         self.knowledge_bases = knowledge_bases
 
-    @property
-    def json(self):
+    def json(self, ki_type: EnumItem):
         kb = self.knowledge_bases if self.knowledge_bases is not None else []
-        bindings = [b.n3(skip_none=False) for b in self.bindings]
+
+        bindings = [b.serialize(ki_type=ki_type) for b in self.bindings]
+
         return {
             "recipientSelector": {
                 "knowledgeBases": kb
