@@ -4,6 +4,7 @@ import sys
 from types import ModuleType
 from typing import Dict, Any, List, Optional, get_origin, get_args, Union
 
+from ke_client.utils.enum_utils import EnumItem
 from pydantic import BaseModel
 
 from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType, KnowledgeInteraction
@@ -125,7 +126,8 @@ def verify_out_bindings_ki(gp_name: str, bindings_annotation, call_ctx: str):
         _verify_object_ki(gp_name=gp_name, bindings_arg_annotation=bindings_annotation, call_ctx=call_ctx)
 
 
-def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[BindingsBase], List[Dict], None]) -> \
+def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[BindingsBase], List[Dict], None],
+                                 ki_type: EnumItem) -> \
         Union[Dict, List[Dict[str, str]]]:
     if bindings is None:
         bindings = []
@@ -139,14 +141,19 @@ def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[Bindings
     # if issubclass(type(bindings ), TargetedBindings)  :
     if issubclass(type(bindings[0]), BindingsBase):
         b: BindingsBase
-        bindings = [b.n3(skip_none=False) for b in bindings]
+        if ki_type == KnowledgeInteractionType.ASK:
+            # ASK KI allows to send part of graph pattern bindings
+            bindings = [b.n3(skip_none=True) for b in bindings]
+        else:
+            # POST, REACT, ANSWER KI require all bindings be included
+            bindings = [b.n3(skip_none=False) for b in bindings]
     return bindings
 
 
 def prepare_ke_request(bindings: Union[TargetedBindings, List[BindingsBase], List[Dict], None],
                        ki: KnowledgeInteraction, call_ctx):
     logging.debug(f"{ki.ki_type} bindings: {ki.graph_pattern.name} = {bindings}")
-    ki_bindings = _serialize_returned_bindings(bindings=bindings)
+    ki_bindings = _serialize_returned_bindings(bindings=bindings, ki_type=ki.ki_type)
 
     if type(bindings) is TargetedBindings:
         _verify_pattern_bindings(name=ki.graph_pattern.name, ki_type=ki.ki_type, ki_bindings=ki_bindings["bindingSet"],
@@ -158,7 +165,7 @@ def prepare_ke_request(bindings: Union[TargetedBindings, List[BindingsBase], Lis
     return ki_bindings
 
 
-def _verify_pattern_bindings(name: str, ki_type: str, ki_bindings: Optional[List[Dict]] = None,
+def _verify_pattern_bindings(name: str, ki_type: EnumItem, ki_bindings: Optional[List[Dict]] = None,
                              call_ctx: Optional[str] = None):
     """
     verify pattern bindings before sending to the
