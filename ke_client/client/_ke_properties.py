@@ -4,7 +4,6 @@ from typing import Optional, Dict, Any
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
-
 from ke_client.ki_model import GraphPattern
 from ke_client.utils import load_yml_obj, DictBaseSettings, validate_kb_id
 import ke_client.ke_vars as ke_vars
@@ -24,6 +23,7 @@ class KESettings(DictBaseSettings):
     ki_config_path: Optional[str] = Field(default=None)
     ki_config_vars_path: Optional[str] = Field(default=None)
     reasoner_level: int = Field(default=1)
+    allow_partial_ki: bool = Field(default=False)
     ki_vars: Optional[dict[str, Any]] = Field(default=None)
     model_config = SettingsConfigDict(env_prefix='KE_', env_file=ke_vars.ENV_FILE, env_file_encoding="utf-8",
                                       extra="ignore")

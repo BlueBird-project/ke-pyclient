@@ -25,6 +25,8 @@ class KEClientBase(BaseModel):
     _registered_ki_: Optional[Dict[str, KnowledgeInteraction]] = None
     # verify KE certificate if SSL is on
     _verify_cert_: bool = True
+    # set True to let partially SUCCEEDED KI , set False to break when any of KI exchange is failed
+    _partial_ki: bool = False
     # state of client
     _is_running_: bool = False
     _is_reconnecting_: bool = False
@@ -32,9 +34,10 @@ class KEClientBase(BaseModel):
 
     # endregion
 
-    def __init__(self,
+    def __init__(self, partial_ki: bool = False,
                  verify_cert: bool = ke_vars.VERIFY_SERVER_CERT, logger: Optional[Logger] = None, **kwargs):
         super().__init__(**kwargs)
+        self._partial_ki = partial_ki
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._client_ki = {}
@@ -106,13 +109,25 @@ class KEClientBase(BaseModel):
             if type(exchange_info_list) is not list:
                 raise Exception(
                     f"Failed KI ({ki_name}) expected 'exchangeInfo' type is 'list' not '{type(exchange_info_list)}' ")
-
+            has_success = False
             for exchange_info in exchange_info_list:
+                kb_id = exchange_info["knowledgeBaseId"]
+                if ExchangeInfoStatus.parse(exchange_info["status"]) == ExchangeInfoStatus.SUCCEEDED:
+                    has_success = True
                 if ExchangeInfoStatus.parse(exchange_info["status"]) == ExchangeInfoStatus.FAILED:
                     bindings = exchange_info["bindings"] if "bindings" in exchange_info else None
-                    raise Exception(
-                        f"Failed KI({ki_name},status: {exchange_info["status"]}): " +
-                        f"{exchange_info["failedMessage"]}, bindings:{bindings}")
+                    if not self._partial_ki:
+                        raise Exception(
+                            f"Failed KI({ki_name}, from: {kb_id}, status: {exchange_info["status"]}): " +
+                            f"{exchange_info["failedMessage"]}, bindings:{bindings}")
+                    else:
+                        self.logger.error(
+                            f"Failed KI({ki_name}, from: {kb_id}, status: {exchange_info["status"]}): " +
+                            f"{exchange_info["failedMessage"]}, bindings:{bindings}")
+            if not has_success:
+                raise Exception(
+                    f"Failed KI({ki_name},all exchanges have status: {ExchangeInfoStatus.FAILED}).  " +
+                    f"From: {",".join([exchange_info["knowledgeBaseId"] for exchange_info in exchange_info_list])}")
 
     # endregion
 

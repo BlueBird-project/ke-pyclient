@@ -53,11 +53,12 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
                 "Undefined knowledge_base_id: 'kb_id' of build()   and  'ke_knowledge_base_id'  variables are None")
 
         return cls(kb_id=kb_id, ke_rest_endpoint=ke_settings.rest_endpoint, kb_name=ki.kb_name,
-                   kb_description=ki.kb_description, logger=logger, prefixes=ki.prefixes)
+                   kb_description=ki.kb_description, logger=logger, prefixes=ki.prefixes,
+                   partial_ki=ke_settings.allow_partial_ki)
 
     def __init__(self, kb_id: str, kb_name: str, ke_rest_endpoint: str, kb_description: str,
                  verify_cert: bool = ke_vars.VERIFY_SERVER_CERT, logger: Optional[Logger] = None,
-                 prefixes: Optional[dict] = None):
+                 prefixes: Optional[dict] = None, partial_ki: bool = False):
         """
 
         :param kb_id: knowledge base URI
@@ -80,7 +81,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         if prefixes is None:
             prefixes = {}
         super().__init__(kb_id=kb_id, kb_name=kb_name, ke_rest_endpoint=ke_rest_endpoint, kb_description=kb_description,
-                         prefixes=prefixes)
+                         prefixes=prefixes, partial_ki=partial_ki)
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._logger_.info(f"Initialized client to {ke_rest_endpoint}")
