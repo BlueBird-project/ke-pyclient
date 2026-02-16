@@ -1,3 +1,4 @@
+import decimal
 from typing import Callable, Optional, Union, Dict
 from urllib.parse import urlparse
 
@@ -127,3 +128,51 @@ def validate_kb_id(uri: str) -> str:
     if result.path.endswith("/"):
         return result.scheme + "://" + result.netloc + result.path[:-1]
     return result.scheme + "://" + result.netloc + result.path
+
+
+# def to_json(obj: Optional[object], numpy_support=True) -> str:
+def to_json(obj: Optional[object]) -> str:
+    import orjson
+
+    def _default(o):
+        if type(o) == decimal.Decimal:
+            return float(o)
+        if type(o) == set:
+            return list(o)
+        if type(o) == dict:
+            return o
+        if hasattr(o, '__dict__'):
+            return o.__dict__
+        # if numpy_support:
+        #     import numpy
+        #     if type(o) == numpy.ndarray:
+        #         return o.tolist()
+        #     if type(o) == numpy.float32:
+        #         return float(o)
+        return str(o)
+
+    json_bytes = orjson.dumps(obj, default=_default)
+
+    return json_bytes.decode("utf-8")
+    # if raw:
+    #     def _default(o):
+    #         if type(o) == decimal.Decimal:
+    #             return float(o)
+    #         if type(o) == set:
+    #             return list(o)
+    #         if type(o) == dict:
+    #             return o
+    #         if hasattr(o, '__dict__'):
+    #             return o.__dict__
+    #         if numpy_support:
+    #             import numpy
+    #             if type(o) == numpy.ndarray:
+    #                 return o.tolist()
+    #             if type(o) == numpy.float32:
+    #                 return float(o)
+    #         return str(o)
+    #
+    #     return json.dumps(obj, default=lambda o: _default(o))
+    #     # return json.dumps(obj, default=lambda o: o.__dict__)
+    # import jsonpickle
+    # return jsonpickle.dumps(obj)

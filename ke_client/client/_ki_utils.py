@@ -44,16 +44,16 @@ def require_graph_pattern(gp_name) -> GraphPattern:
     return gp
 
 
-def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
-    _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
-               k in params}
-    bindings_annotation = get_origin(params["bindings"].annotation)
-    if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
-        # if "bindings" in _kwargs and issubclass(params["bindings"].annotation, BindingsBase):
-        cls_annotations = get_args(params["bindings"].annotation)
-        if len(cls_annotations) == 1 and issubclass(cls_annotations[0], BindingsBase):
-            _kwargs["bindings"] = [cls_annotations[0](**b) for b in _kwargs["bindings"]]
-    return _kwargs
+# def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
+#     _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
+#                k in params}
+#     bindings_annotation = get_origin(params["bindings"].annotation)
+#     if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
+#         # if "bindings" in _kwargs and issubclass(params["bindings"].annotation, BindingsBase):
+#         cls_annotations = get_args(params["bindings"].annotation)
+#         if len(cls_annotations) == 1 and issubclass(cls_annotations[0], BindingsBase):
+#             _kwargs["bindings"] = [cls_annotations[0](**b) for b in _kwargs["bindings"]]
+#     return _kwargs
 
 
 def _verify_object_ki(gp_name: str, bindings_arg_annotation, call_ctx: str):

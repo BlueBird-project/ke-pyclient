@@ -5,12 +5,12 @@ name = "ke_client"
 description = " "
 authors = [{   name = "tc", email = "tc@example.org" } ]
 dependencies = [
-    "pydantic","unidecode","pytz","rdflib","pydantic"
+    "pydantic","unidecode","pytz","rdflib","pydantic","orjson"
 ]
 requires-python = ">=3.9"
 #    "python (>=2.23.0,<3.0.0)",
 [tool.poetry]
-version = "0.24.3"
+version = "0.24.4"
 
 #[tool.poetry.dependencies]
 #python = "^3.10"

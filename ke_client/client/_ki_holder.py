@@ -11,6 +11,7 @@ from ke_client.client._ki_exceptions import KIError, KITypeError
 from ke_client.client._ki_utils import verify_in_bindings_ki, verify_out_bindings_ki, _verify_required_bindings, \
     prepare_ke_request
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction
+from ke_client.utils import to_json
 
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 
@@ -52,12 +53,15 @@ def _verify_mismatched_bindings(ki_id: str, input_bindings, output_bindings):
 def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
     _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
                k in params}
-    bindings_annotation = get_origin(params["bindings"].annotation)
-    if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
-        # if "bindings" in _kwargs and issubclass(params["bindings"].annotation, BindingsBase):
-        cls_annotations = get_args(params["bindings"].annotation)
-        if len(cls_annotations) == 1 and issubclass(cls_annotations[0], BindingsBase):
-            _kwargs["bindings"] = [cls_annotations[0](**b) for b in _kwargs["bindings"]]
+    if to_json(_kwargs["bindings"]) == to_json([{}]):
+        _kwargs["bindings"]= []
+    else:
+        bindings_annotation = get_origin(params["bindings"].annotation)
+        if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
+            # if "bindings" in _kwargs and issubclass(params["bindings"].annotation, BindingsBase):
+            cls_annotations = get_args(params["bindings"].annotation)
+            if len(cls_annotations) == 1 and issubclass(cls_annotations[0], BindingsBase):
+                _kwargs["bindings"] = [cls_annotations[0](**b) for b in _kwargs["bindings"]]
     return _kwargs
 
 
@@ -67,7 +71,6 @@ class KIHolder:
     _client_ki: Dict[str, KnowledgeInteraction]
     _ke_client: Optional[KERequestClient]
     _kb_id: Optional[str]
-
 
     def get_kb_id(self):
         if self._ke_client is None:
