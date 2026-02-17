@@ -125,10 +125,11 @@ class KEClientBase(BaseModel):
                         self.logger.error(
                             f"Failed KI({ki_name}, from: {kb_id}, status: {exchange_info["status"]}): " +
                             f"{exchange_info["failedMessage"]}, bindings:{bindings}")
-            if not has_success and len(exchange_info_list)>0:
+            if not has_success and len(exchange_info_list) > 0:
                 raise Exception(
                     f"Failed KI({ki_name},all exchanges have status: {ExchangeInfoStatus.FAILED}).  " +
-                    f"From: {",".join([exchange_info["knowledgeBaseId"] for exchange_info in exchange_info_list])}")
+                    f"From: {",".join([f'{exchange_info["knowledgeBaseId"]}:{exchange_info["failedMessage"]}'
+                                       for exchange_info in exchange_info_list])}")
 
     # endregion
 
