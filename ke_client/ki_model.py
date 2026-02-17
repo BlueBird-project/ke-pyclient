@@ -3,9 +3,8 @@ from typing import Optional, Union, Callable, List, Dict, Any
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from ke_client import BindingsBase
 from ke_client.utils import time_utils
-from ke_client.utils.enum_utils import   BaseEnum, EnumItem
+from ke_client.utils.enum_utils import BaseEnum, EnumItem
 
 RDF_BINDING_REGEX = r"\?[A-Za-z_][A-Za-z0-9_]+"
 rdf_binding_pattern = re.compile(RDF_BINDING_REGEX)
@@ -42,8 +41,9 @@ class GraphPattern(BaseModel):
             return "\n ".join(self.result_pattern)
         return None
 
-    def verify_required_bindings(self, bindings: Union[Dict[str, Any],BindingsBase]):
+    def verify_required_bindings(self, bindings: Union[Dict[str, Any], Any]):
 
+        from ke_client import BindingsBase
         if self.required_bindings is None:
             return
         for binding_key in self.required_bindings:
