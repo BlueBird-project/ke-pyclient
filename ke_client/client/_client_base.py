@@ -5,6 +5,7 @@ from http import HTTPStatus
 import requests
 import time
 
+from ke_client.utils.enum_utils import EnumItem
 from pydantic import BaseModel, PrivateAttr
 
 from requests import Response
@@ -366,7 +367,7 @@ class KEClientBase(BaseModel):
             # what in case of an error ?
             return send_request()
 
-    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: str):
+    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: EnumItem):
         """
         REACT/ANSWER knowledge interactions handler, triggered by KE
         """
