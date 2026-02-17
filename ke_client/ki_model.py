@@ -3,6 +3,7 @@ from typing import Optional, Union, Callable, List, Dict, Any
 
 from pydantic import BaseModel, Field, ConfigDict
 
+from ke_client import BindingsBase
 from ke_client.utils import time_utils
 from ke_client.utils.enum_utils import   BaseEnum, EnumItem
 
@@ -41,14 +42,19 @@ class GraphPattern(BaseModel):
             return "\n ".join(self.result_pattern)
         return None
 
-    def verify_required_bindings(self, bindings: Dict[str, Any]):
+    def verify_required_bindings(self, bindings: Union[Dict[str, Any],BindingsBase]):
+
         if self.required_bindings is None:
             return
         for binding_key in self.required_bindings:
             if bindings is None:
                 raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
-            if binding_key not in bindings:
-                raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
+            if issubclass(type(bindings), BindingsBase):
+                if binding_key not in bindings.__dict__:
+                    raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
+            else:
+                if binding_key not in bindings:
+                    raise KeyError(f"Binding key={binding_key} missing in {self.required_bindings}. ")
 
     @property
     def pattern_vars(self) -> List[str]:

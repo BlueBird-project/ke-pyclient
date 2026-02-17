@@ -54,7 +54,7 @@ def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
     _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
                k in params}
     if to_json(_kwargs["bindings"]) == to_json([{}]):
-        _kwargs["bindings"]= []
+        _kwargs["bindings"] = []
     else:
         bindings_annotation = get_origin(params["bindings"].annotation)
         if "bindings" in _kwargs and (bindings_annotation is not None) and issubclass(bindings_annotation, list):
@@ -240,7 +240,7 @@ class KIHolder:
             def wrapper(*wrapper_args):
                 _kwargs = _init_ki_kwargs(wrapper_args=wrapper_args, params=params)
                 ki_id = _kwargs["ki_id"] if "ki_id" in _kwargs else None
-                input_bindings: list[dict] = _kwargs["bindings"] if "bindings" in _kwargs else None
+                input_bindings: List[Union[dict, BindingsBase]] = _kwargs["bindings"] if "bindings" in _kwargs else None
 
                 logging.info(f"ANSWER init bindings: {ki_id}")
                 logging.debug(f"ANSWER init bindings: {ki_id} :{input_bindings}")
