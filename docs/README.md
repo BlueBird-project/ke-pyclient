@@ -279,6 +279,9 @@ ki_client.register()
 pattern in the ki config file and python objects. All RDF's Uris should be of type rdflib.RDFUri. Other fields can be
 either rdflib.Literal or standard type (e.g float, int )
 
+Optional fields and `None` values - Optional fields can be set to None or `rdf_nil` (`from ke_client import rdf_nil` ) if it's required to model them in RDF graph.
+`URIRef` type should be modeled as `Optional[URIRef]` (even if using `rdf_nil`)  and `Literal` type as `OptionalLiteral` ( `from ke_client import OptionalLiteral` )
+
 ```python
 # standard graph pattern exchange object
 @ki_object("fm-ts-info-request")
