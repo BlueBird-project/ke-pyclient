@@ -13,7 +13,7 @@ from ke_client.client._ki_bindings import BindingsBase
 from ke_client.client._client_base import KEClientBase
 from ke_client.client._ki_holder import KIHolder
 from ke_client.ki_model import KIPostResponse, KIAskResponse, KnowledgeInteraction
-from ke_client.utils import validate_kb_id
+from ke_client.utils import validate_kb_id, time_utils
 
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 OptionalLiteral: TypeAlias = Union[Literal, URIRef, None]
@@ -166,7 +166,11 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
                                           headers={"Knowledge-Base-Id": self.kb_id})
         if response.status_code == 200:
             # 200 means: we receive bindings that we need to handle, then re-poll asap.
-            self._handle_response_(response=response)
+            current_ts = time_utils.current_timestamp()
+            ki_id = self._handle_response_(response=response)
+            t = time_utils.current_timestamp() - current_ts
+            if t > 2000:
+                logging.warning(f"Slow ({t} ms) KI handler: {ki_id}")
             return True
         elif response.status_code == 202:
             # 202 means: re poll (heartbeat)

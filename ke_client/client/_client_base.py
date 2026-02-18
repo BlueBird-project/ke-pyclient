@@ -332,6 +332,7 @@ class KEClientBase(BaseModel):
             result_bindings = ki.handler(ki_id, bindings)
             self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id,
                           ki_type=ki.ki_type)
+            return ki_id
         except Exception as ex:
             self.logger.error(
                 f"Error occurred in handle_response kb_id:{self.kb_id} ki_id:{ki_id}, "
