@@ -51,7 +51,7 @@ class BindingsBase(BaseModel):
                     raise Exception(f"Non nil URIRef not allowed for Literal: {k} in {self.__class__.__name__}")
                 if is_node_nil:
                     if is_optional:
-                        rdf_nodes[k] = None
+                        rdf_nodes[k] = rdf_nodes[k]
                     else:
                         raise Exception(f"Nil node is not allowed for non optional field ({k}) ")
                     # if is_literal and is_optional:
