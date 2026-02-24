@@ -7,8 +7,10 @@ nil = URIRef("#nil", base="http://www.w3.org/1999/02/22-rdf-syntax-ns")
 rdf_nil = nil
 
 
-def is_nil(uri_ref: Optional[URIRef]):
+def is_nil(uri_ref: Optional[Union[URIRef, Literal]]):
     if uri_ref is None:
+        return False
+    if type(uri_ref) is Literal:
         return False
     return (uri_ref.fragment == rdf_nil.fragment and str(uri_ref.defrag()) == str(rdf_nil.defrag())) \
         or str(uri_ref) == "rdf:nil"
