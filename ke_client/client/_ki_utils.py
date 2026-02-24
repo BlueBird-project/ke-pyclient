@@ -127,28 +127,42 @@ def verify_out_bindings_ki(gp_name: str, bindings_annotation, call_ctx: str):
 
 
 def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[BindingsBase], List[Dict], None],
-                                 ki_type: EnumItem) -> \
+                                 ki_type: EnumItem, graph_pattern_name: str) -> \
         Union[Dict, List[Dict[str, str]]]:
     if bindings is None:
         bindings = []
     if type(bindings) is TargetedBindings:
+        if len(bindings) > 5:
+            dots = f"...[{len(bindings) - 5}]"
+        else:
+            dots = ""
+        logging.debug(
+            f"{ki_type} bindings: {graph_pattern_name} , with: {bindings.knowledge_bases} = {bindings[:5]}{dots} ")
         # bindings: TargetedBindings
         return bindings.json(ki_type=ki_type)
     if type(bindings) is not list:
         bindings = [bindings]
     if len(bindings) == 0:
+        logging.debug(
+            f"{ki_type} bindings: {graph_pattern_name} = []")
         return bindings
     # if issubclass(type(bindings ), TargetedBindings)  :
     if issubclass(type(bindings[0]), BindingsBase):
         b: BindingsBase
         bindings = [b.serialize(ki_type=ki_type) for b in bindings]
+    if len(bindings) > 5:
+        dots = f"...[{len(bindings) - 5}]"
+    else:
+        dots = ""
+    logging.debug(
+        f"{ki_type} bindings: {graph_pattern_name}   = {bindings[:5]}{dots} ")
     return bindings
 
 
 def prepare_ke_request(bindings: Union[TargetedBindings, List[BindingsBase], List[Dict], None],
                        ki: KnowledgeInteraction, call_ctx):
-    logging.debug(f"{ki.ki_type} bindings: {ki.graph_pattern.name} = {bindings}")
-    ki_bindings = _serialize_returned_bindings(bindings=bindings, ki_type=ki.ki_type)
+    ki_bindings = _serialize_returned_bindings(bindings=bindings, ki_type=ki.ki_type,
+                                               graph_pattern_name=ki.graph_pattern.name)
 
     if type(bindings) is TargetedBindings:
         _verify_pattern_bindings(name=ki.graph_pattern.name, ki_type=ki.ki_type, ki_bindings=ki_bindings["bindingSet"],

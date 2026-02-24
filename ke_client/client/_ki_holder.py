@@ -178,7 +178,7 @@ class KIHolder:
                 result_bindings: KIAskResponse = self._client.ask_ke(bindings=ke_request_json, ki_id=ki_id,
                                                                      ki_name=ki.ki_name)
 
-                logging.debug(f"ASK-{ki_id}-result: {result_bindings}")
+                logging.debug(f"ASK-{ki_id}-result: {str(result_bindings)[:1024]}")
                 return result_bindings
 
             return wrapper
@@ -208,7 +208,6 @@ class KIHolder:
                 ki_id = _kwargs["ki_id"] if "ki_id" in _kwargs else None
                 post_input_bindings = _kwargs["bindings"] if "bindings" in _kwargs else None
                 logging.info(f"REACT init bindings: {ki_id}")
-                # logging.debug(f"REACT init bindings: {ki_id} :{post_input_bindings}")
                 react_bindings: Union[List[Dict], List[BindingsBase]] = func(**_kwargs)
                 if react_bindings is None:
                     logging.warning(f"Undefined react_bindings for {ki_id}, setting empty list")
