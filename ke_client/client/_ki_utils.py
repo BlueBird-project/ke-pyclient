@@ -4,14 +4,12 @@ import sys
 from types import ModuleType
 from typing import Dict, Any, List, Optional, get_origin, get_args, Union
 
-from ke_client.utils.enum_utils import EnumItem
 from pydantic import BaseModel
 
-from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType, KnowledgeInteraction
-
-from ._ki_bindings import BindingsBase, TargetedBindings
-
 from ke_client.ki_model import GraphPattern
+from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType, KnowledgeInteraction
+from ke_client.utils.enum_utils import EnumItem
+from ._ki_bindings import BindingsBase, TargetedBindings
 from ._ki_exceptions import KIError
 
 
@@ -133,11 +131,11 @@ def _serialize_returned_bindings(bindings: Union[TargetedBindings, List[Bindings
         bindings = []
     if type(bindings) is TargetedBindings:
         if len(bindings.bindings) > 5:
-            dots = f"...[{len(bindings) - 5}]"
+            dots = f"...[{len(bindings.bindings) - 5}]"
         else:
             dots = ""
         logging.debug(
-            f"{ki_type} bindings: {graph_pattern_name} , with: {bindings.knowledge_bases} = {bindings[:5]}{dots} ")
+            f"{ki_type} bindings: {graph_pattern_name} , with: {bindings.knowledge_bases} = {bindings.bindings[:5]}{dots} ")
         # bindings: TargetedBindings
         return bindings.json(ki_type=ki_type)
     if type(bindings) is not list:
