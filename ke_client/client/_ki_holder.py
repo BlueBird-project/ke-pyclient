@@ -148,7 +148,7 @@ class KIHolder:
                 t = time_utils.current_timestamp() - current_ts
                 if t > 5000:
                     logging.warning(
-                        f"Long ({t} ms) KI {ki_id}, [{len(post_bindings)}] -> [{len(ki_post_response.binding_set)}]")
+                        f"Long ({t} ms) KI {ki_id}, [{len(post_bindings)}] -> [{len(ki_post_response.result_binding_set)}]")
                 return ki_post_response
 
             return wrapper
