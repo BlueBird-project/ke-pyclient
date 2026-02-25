@@ -141,3 +141,6 @@ class TargetedBindings:
             },
             "bindingSet": bindings
         }
+
+    def __len__(self):
+        return len(self.bindings)
