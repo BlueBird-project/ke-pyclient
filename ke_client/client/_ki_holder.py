@@ -11,7 +11,7 @@ from ke_client.client._ki_exceptions import KIError, KITypeError
 from ke_client.client._ki_utils import verify_in_bindings_ki, verify_out_bindings_ki, _verify_required_bindings, \
     prepare_ke_request
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction
-from ke_client.utils import to_json
+from ke_client.utils import to_json, time_utils
 
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 
@@ -137,12 +137,18 @@ class KIHolder:
                     raise KIError(
                         message=f"Empty 'ki_id' for graph pattern: {ki.ki_name}. Is graph pattern registered? ",
                         ctx=call_ctx)
+                current_ts = time_utils.current_timestamp()
                 logging.info(f"POST init bindings: {ki_id}")
                 post_bindings = func(*wrapper_args, **kwargs)
 
                 ke_request_json = prepare_ke_request(bindings=post_bindings, ki=ki, call_ctx=call_ctx)
                 ki_post_response: KIPostResponse = self._client.post_ke(bindings=ke_request_json, ki_id=ki_id,
                                                                         ki_name=ki.ki_name)
+
+                t = time_utils.current_timestamp() - current_ts
+                if t > 5000:
+                    logging.warning(
+                        f"Long ({t} ms) KI {ki_id}, [{len(post_bindings)}] -> [{len(ki_post_response.binding_set)}]")
                 return ki_post_response
 
             return wrapper
@@ -172,12 +178,18 @@ class KIHolder:
                         ctx=call_ctx)
 
                 logging.info(f"ASK init bindings: {ki_id}")
+                current_ts = time_utils.current_timestamp()
+
                 ask_bindings = func(*wrapper_args, **kwargs)
                 ke_request_json = prepare_ke_request(bindings=ask_bindings, ki=ki, call_ctx=call_ctx)
 
                 result_bindings: KIAskResponse = self._client.ask_ke(bindings=ke_request_json, ki_id=ki_id,
                                                                      ki_name=ki.ki_name)
 
+                t = time_utils.current_timestamp() - current_ts
+                if t > 5000:
+                    logging.warning(
+                        f"Long ({t} ms) KI {ki_id}, [{len(ask_bindings)}] -> [{len(result_bindings.binding_set)}]")
                 logging.debug(f"ASK-{ki_id}-result: {str(result_bindings)[:1024]}")
                 return result_bindings
 
