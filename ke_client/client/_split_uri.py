@@ -55,7 +55,7 @@ class UriTemplate(Generic[T]):
         return f"UriTemplate parser for: {self.__uri_obj_class__} ({self.uri_template}) "
 
     def parse(self, uri: [str, URIRef], prefix: str = "") -> T:
-        if prefix and  not prefix.endswith("/"):
+        if prefix and not prefix.endswith("/"):
             prefix = prefix + "/"
         uri = str(uri)[len(prefix):]
         matched_args = re.match(self.__uri_pattern__, uri)
@@ -103,7 +103,7 @@ class SplitURIBase(BaseModel):
     def __init__(self, prefix: Optional[str] = None, **kwargs):
         # TODO: check if class is decorated
         super().__init__(**kwargs)
-        if prefix is None:
+        if prefix is None or prefix == "":
             self.__prefix__ = ""
         elif prefix.endswith("/"):
             self.__prefix__ = prefix
