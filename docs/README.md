@@ -8,15 +8,16 @@
 - KE REST API [Swagger documentation](./openapi-sc.yaml)
 
 - install [Install](../README.md#install)
- 
+
 - sample project with FM-TM interaction [link](https://github.com/BlueBird-project/ke-sample-client)
 
 - Client Configuration [link](#configuration)
-  - Graph patterns docs [link](#graph-patterns)
-  - Bluebird graph patterns [repository](https://github.com/BlueBird-project/knowledge-interaction-config)
+    - Graph patterns docs [link](#graph-patterns)
+    - Bluebird graph patterns [repository](https://github.com/BlueBird-project/knowledge-interaction-config)
 - Implementing the [python client](#python-client)
-  - decorating [ki methods](#decorating-ki-methods)
-  - KI data exchange [objects](#ki-objects)
+    - decorating [ki methods](#decorating-ki-methods)
+    - KI data exchange [objects](#ki-objects)
+
 ## Glossary
 
 - KI - Knowledge interation
@@ -88,6 +89,11 @@ ke:
   ki_config_path: src/config_files/fm_test.yml
 ```
 
+* ki_config_path:_str_ - path to knowledge interaction graph patterns
+* allow_partial_ki: _bool_ (default`false`) - if `false` and there is one or more failed KI exception will be raised,
+  otherwise return result (binding sets) for all successful interactions
+*
+
 ### Graph patterns
 
 #### Useful ontologies and prefixes
@@ -95,9 +101,9 @@ ke:
 - rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 - xsd: "http://www.w3.org/2001/XMLSchema#"
 - saref:
-  - saref: "https://saref.etsi.org/core"
-  - s4ener: "https://saref.etsi.org/saref4ener"
-  - s4city: "https://saref.etsi.org/s4city"
+    - saref: "https://saref.etsi.org/core"
+    - s4ener: "https://saref.etsi.org/saref4ener"
+    - s4city: "https://saref.etsi.org/s4city"
 - foaf: "http://xmlns.com/foaf/0.1/"
 - time: "http://www.w3.org/2006/time#"
 - ubmarket: "https://ubflex.bluebird.eu/market" todo: integrate with BIGG
@@ -234,9 +240,9 @@ ki_client = KEClient.build()
 # `graph_name` - KI name 
 @ki_client.post("graph_name")
 def request_method(custom_arg, ...):
-  ...
-  #  Each returned POST graph binding set must use all graph variables  (e.g. '?sensor') defined in the KI's pattern 
-  return [{"arg": "binding"}]  # List of binding sets
+    ...
+    #  Each returned POST graph binding set must use all graph variables  (e.g. '?sensor') defined in the KI's pattern 
+    return [{"arg": "binding"}]  # List of binding sets
 ```
 
 Calling defined POST KI:
@@ -254,11 +260,11 @@ For KI responses  (REACT - subscribe to POST )
 
 @ki_client.react("graph_name")
 def on_graph_name(ki_id: str, post_bindings: List[Dict[str, Any]]):
-  ...
-  # process post_bindings
-  ...
-  # return result_pattern bindings or empty list if result_pattern is empty
-  return [{"arg": "binding"}] 
+    ...
+    # process post_bindings
+    ...
+    # return result_pattern bindings or empty list if result_pattern is empty
+    return [{"arg": "binding"}] 
 ```
 
 ### Register
@@ -279,34 +285,36 @@ ki_client.register()
 pattern in the ki config file and python objects. All RDF's Uris should be of type rdflib.RDFUri. Other fields can be
 either rdflib.Literal or standard type (e.g float, int )
 
-Optional fields and `None` values - Optional fields can be set to None or `rdf_nil` (`from ke_client import rdf_nil` ) if it's required to model them in RDF graph.
-`URIRef` type should be modeled as `Optional[URIRef]` (even if using `rdf_nil`)  and `Literal` type as `OptionalLiteral` ( `from ke_client import OptionalLiteral` )
+Optional fields and `None` values - Optional fields can be set to None or `rdf_nil` (`from ke_client import rdf_nil` )
+if it's required to model them in RDF graph.
+`URIRef` type should be modeled as `Optional[URIRef]` (even if using `rdf_nil`)  and `Literal` type
+as `OptionalLiteral` ( `from ke_client import OptionalLiteral` )
 
 ```python
 # standard graph pattern exchange object
 @ki_object("fm-ts-info-request")
 class FMTSRequest(BindingsBase):
-  ts_interval_uri: URIRef
-  ts_date_from: Literal
-  ts_date_to: Literal
-  some_float_value: float
+    ts_interval_uri: URIRef
+    ts_date_from: Literal
+    ts_date_to: Literal
+    some_float_value: float
 
 
 # result graph pattern exchange object
 @ki_object("fm-ts-info-request", result=True)
 class FMTSResponse(BindingsBase):
-  ts_uri: URIRef
-  ts_interval_uri: URIRef
-  # ts_usage: Union[Literal, URIRef]
-  ts_usage: URIRef
-  time_create: Literal
+    ts_uri: URIRef
+    ts_interval_uri: URIRef
+    # ts_usage: Union[Literal, URIRef]
+    ts_usage: URIRef
+    time_create: Literal
 
 
 # allow subset of graph's pattern bindings arguments (useful for ASK KI)
 @ki_object("fm-ts-info-request", allow_partial=True)
 class FMTSRequest(BindingsBase):
-  ts_date_from: Literal
-  ts_date_to: Literal
+    ts_date_from: Literal
+    ts_date_to: Literal
 
 
 ```
@@ -324,9 +332,9 @@ kb_id = "http://tm.example.org"
 
 @ki_split_uri(uri_template=f"{kb_id}/tou" + "/${range_id}/${period_minutes}/${ts}")
 class TOUSplitURI(SplitURIBase):
-  range_id: int
-  period_minutes: int
-  ts: int
+    range_id: int
+    period_minutes: int
+    ts: int
 
 ```
  
