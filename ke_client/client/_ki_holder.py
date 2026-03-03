@@ -81,16 +81,28 @@ class KIHolder:
         self._ke_client = None
         self._client_ki = {}
 
+    #     todo: set private logger
+
     def get_ki(self, name: str):
         return self._client_ki[name]
 
     def list_ki(self):
         return self._client_ki.values()
 
-    def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
+    def _set_ki_(self, gp_name: str, handler, ki_type: str, call_ctx: str) -> KnowledgeInteraction:
         from ke_client.client._ki_utils import require_graph_pattern
         gp = require_graph_pattern(gp_name)
-        ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
+
+        def measured_handler(ki_id: str, bindings: Optional[List[Dict[str, Any]]]):
+            current_ts = time_utils.current_timestamp()
+            result = handler(ki_id=ki_id, bindings=bindings)
+            t = time_utils.current_timestamp() - current_ts
+            if t > 2000:
+                logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) for {ki_id}")
+            return result
+
+        ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=measured_handler, ki_type=ki_type,
+                                  graph_pattern=gp)
         if ki.ki_name in self._client_ki:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki[ki.ki_name] = ki
@@ -125,7 +137,7 @@ class KIHolder:
 
         def deco(func: Callable[..., KIBindings]) -> Callable[..., KIPostResponse]:
             ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
-                                                     ki_type=KnowledgeInteractionType.POST)
+                                                     ki_type=KnowledgeInteractionType.POST, call_ctx=call_ctx)
             func_sig = inspect.signature(func)
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                    call_ctx=call_ctx)
@@ -167,7 +179,8 @@ class KIHolder:
             verify_out_bindings_ki(gp_name=name, bindings_annotation=func_sig.return_annotation,
                                    call_ctx=call_ctx)
             ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=func,
-                                                     ki_type=KnowledgeInteractionType.ASK)
+                                                     ki_type=KnowledgeInteractionType.ASK,
+                                                     call_ctx=call_ctx)
 
             @wraps(func)
             def wrapper(*wrapper_args, **kwargs) -> KIAskResponse:
@@ -230,8 +243,7 @@ class KIHolder:
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
             ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper,
-                                                     ki_type=KnowledgeInteractionType.REACT)
-            # self._set_ki_(gp=gp, handler=wrapper, ki_type=KnowledgeInteractionType.REACT)
+                                                     ki_type=KnowledgeInteractionType.REACT, call_ctx=call_ctx)
             return wrapper
 
         return deco
@@ -264,7 +276,7 @@ class KIHolder:
 
             wrapper.__name__ = wrapper.__name__ + "_" + func.__name__
             ki: KnowledgeInteraction = self._set_ki_(gp_name=name, handler=wrapper,
-                                                     ki_type=KnowledgeInteractionType.ANSWER)
+                                                     ki_type=KnowledgeInteractionType.ANSWER, call_ctx=call_ctx)
 
             return wrapper
 

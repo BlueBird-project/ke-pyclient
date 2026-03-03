@@ -93,7 +93,7 @@ ke:
 * allow_partial_ki: _bool_ (default`false`) - if `false` and there is one or more failed KI exception will be raised,
   otherwise return result (binding sets) for all successful interactions
 *
-
+TODO: describe other config parameters
 ### Graph patterns
 
 #### Useful ontologies and prefixes

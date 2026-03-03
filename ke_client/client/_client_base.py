@@ -329,6 +329,7 @@ class KEClientBase(BaseModel):
             handle_request_id = handle_request["handleRequestId"]
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
+
             result_bindings = ki.handler(ki_id, bindings)
             self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id,
                           ki_type=ki.ki_type)
