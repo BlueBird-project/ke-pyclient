@@ -90,6 +90,11 @@ class ExchangeInfoStatus(BaseEnum):
     SUCCEEDED = EnumItem("SUCCEEDED")
 
 
+class KIACK(BaseModel):
+    status: bool
+    kb_id: str
+
+
 class KnowledgeInteraction(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     ki_name: str
@@ -123,6 +128,7 @@ class PostExchangeInfo(BaseModel):
     initiator: Optional[str] = None
     knowledgeBaseId: str
     knowledgeInteractionId: str
+    failedMessage: Optional[str] = None
     exchangeStart: str
     status: str
 
@@ -140,6 +146,7 @@ class AskExchangeInfo(BaseModel):
     initiator: Optional[str] = None
     knowledgeBaseId: str
     knowledgeInteractionId: str
+    failedMessage: Optional[str] = None
     exchangeStart: str
     status: str
 
@@ -173,6 +180,10 @@ class KIPostResponse(BaseModel):
             raise TypeError(
                 f"invalid deserialization type: {binding_obj_cls}, expected sublass of {BindingsBase.__name__}")
 
+    def get_ack(self) -> List[KIACK]:
+        return [KIACK(status=ei.status == ExchangeInfoStatus.SUCCEEDED, kb_id=ei.knowledgeBaseId)
+                for ei in self.exchangeInfo]
+
 
 class KIAskResponse(BaseModel):
     bindingSet: List[Dict[str, Any]]
@@ -195,17 +206,21 @@ class KIAskResponse(BaseModel):
             raise TypeError(
                 f"invalid deserialization type: {binding_obj_cls}, expected sublass of {BindingsBase.__name__}")
 
-#  [ {dict: 8} {'argumentBindingSet': [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to':
-#  '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}],
-#  'exchangeEnd': '2025-12-18T18:23:24.584+00:00', 'exchangeStart': '2025-12-18T18:23:24.574+00:00',
-#  'initiator': 'knowledgeBase', 'knowledgeBaseId': 'http://fm.bluebird.com', 'knowledgeInteractionId':
-#  'http://fm.bluebird.com/interaction/react-fm-ts-info-request', 'resultBindingSet': [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}], 'status': 'SUCCEEDED'}
-# 'initiator' = {str} 'knowledgeBase'
-# 'knowledgeBaseId' = {str} 'http://fm.bluebird.com'
-# 'knowledgeInteractionId' = {str} 'http://fm.bluebird.com/interaction/react-fm-ts-info-request'
-# 'exchangeStart' = {str} '2025-12-18T18:23:24.574+00:00'
-# 'exchangeEnd' = {str} '2025-12-18T18:23:24.584+00:00'
-# 'status' = {str} 'SUCCEEDED'
-# 'argumentBindingSet' = {list: 1} [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to': '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}]
-# 'resultBindingSet' = {list: 1} [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}]
-# ]
+    def get_ack(self) -> List[KIACK]:
+        return [KIACK(status=ei.status == ExchangeInfoStatus.SUCCEEDED, kb_id=ei.knowledgeBaseId)
+                for ei in self.exchangeInfo]
+
+        # [ {dict: 8} {'argumentBindingSet': [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to':
+        #  '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}],
+        #  'exchangeEnd': '2025-12-18T18:23:24.584+00:00', 'exchangeStart': '2025-12-18T18:23:24.574+00:00',
+        #  'initiator': 'knowledgeBase', 'knowledgeBaseId': 'http://fm.bluebird.com', 'knowledgeInteractionId':
+        #  'http://fm.bluebird.com/interaction/react-fm-ts-info-request', 'resultBindingSet': [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}], 'status': 'SUCCEEDED'}
+        # 'initiator' = {str} 'knowledgeBase'
+        # 'knowledgeBaseId' = {str} 'http://fm.bluebird.com'
+        # 'knowledgeInteractionId' = {str} 'http://fm.bluebird.com/interaction/react-fm-ts-info-request'
+        # 'exchangeStart' = {str} '2025-12-18T18:23:24.574+00:00'
+        # 'exchangeEnd' = {str} '2025-12-18T18:23:24.584+00:00'
+        # 'status' = {str} 'SUCCEEDED'
+        # 'argumentBindingSet' = {list: 1} [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to': '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}]
+        # 'resultBindingSet' = {list: 1} [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}]
+        # ]

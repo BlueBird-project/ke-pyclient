@@ -93,12 +93,12 @@ class KIHolder:
         from ke_client.client._ki_utils import require_graph_pattern
         gp = require_graph_pattern(gp_name)
 
-        def measured_handler(ki_id: str, bindings: Optional[List[Dict[str, Any]]]):
+        def measured_handler(kb_id: str, bindings: Optional[List[Dict[str, Any]]]):
             current_ts = time_utils.current_timestamp()
-            result = handler(ki_id, bindings)
+            result = handler(kb_id, bindings)
             t = time_utils.current_timestamp() - current_ts
             if t > 2000:
-                logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) for {ki_id}")
+                logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) for {kb_id}")
             return result
 
         ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=measured_handler, ki_type=ki_type,
