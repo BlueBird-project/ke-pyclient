@@ -32,7 +32,7 @@ class KEClientBase(BaseModel):
     _is_running_: bool = False
     _is_reconnecting_: bool = False
     _current_wait_timeout_: int = 30
-
+    _http_timeout=(15, 180)
     # endregion
 
     def __init__(self, partial_ki: bool = False,
@@ -203,7 +203,7 @@ class KEClientBase(BaseModel):
             self.ke_rest_endpoint + "sc/ki/",
             json=body,
             headers={"Knowledge-Base-Id": self.kb_id},
-            verify=self._verify_cert_
+            verify=self._verify_cert_,timeout=self._http_timeout
         )
         if response.status_code != 200:
             try:
@@ -234,7 +234,8 @@ class KEClientBase(BaseModel):
             response = requests.get(
                 self.ke_rest_endpoint + "sc/ki/",
                 headers={"Knowledge-Base-Id": self.kb_id},
-                verify=self._verify_cert_
+                verify=self._verify_cert_,
+                timeout=self._http_timeout
             )
             if response.status_code == 200:
                 for ki in response.json():
@@ -275,7 +276,8 @@ class KEClientBase(BaseModel):
         # response = self._get_(endpoint=self.ke_rest_endpoint + "sc/ki/", headers={"Knowledge-Base-Id": self.kb_id})
         response = requests.get(
             self.ke_rest_endpoint + "sc/ki/", headers={"Knowledge-Base-Id": self.kb_id},
-            verify=self._verify_cert_
+            verify=self._verify_cert_,
+            timeout=self._http_timeout
         )
         if response.status_code == HTTPStatus.NOT_FOUND:
             self.logger.info(f"KB not registered:  {self.kb_id} - {self.kb_name}")
@@ -290,7 +292,8 @@ class KEClientBase(BaseModel):
                     "reasonerLevel": self.reasoner_level,
                     # "reasonerEnabled":True
                 },
-                verify=self._verify_cert_
+                verify=self._verify_cert_,timeout=self._http_timeout
+
             )
             # TODO handler error in response
             assert response.ok
@@ -343,12 +346,12 @@ class KEClientBase(BaseModel):
                            register=False) -> Response:
 
         return self._http_request_wrapper(
-            send_request=lambda: requests.post(endpoint, headers=headers, json=ke_request, verify=self._verify_cert_),
+            send_request=lambda: requests.post(endpoint, headers=headers, json=ke_request, verify=self._verify_cert_,timeout=self._http_timeout),
             endpoint=endpoint, register=register)
 
     def _api_get_request_(self, endpoint: str, headers: Dict, register=False) -> Response:
         return self._http_request_wrapper(
-            send_request=lambda: requests.get(endpoint, headers=headers, verify=self._verify_cert_),
+            send_request=lambda: requests.get(endpoint, headers=headers, verify=self._verify_cert_,timeout=self._http_timeout),
             endpoint=endpoint, register=register)
 
     def _http_request_wrapper(self, send_request: Callable[[], Response], endpoint: str, register: bool):
