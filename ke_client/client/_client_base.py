@@ -88,7 +88,7 @@ class KEClientBase(BaseModel):
                                                                               response_errors.REGISTER_404_ERROR]:
                 self.logger.error(f"{err}: {response.json()["message"]}")
                 # self.register()
-                self.reconnect()
+                self.reconnect(bg=True)
                 raise Exception(f"KE error: {response.json()["message"]}")
             else:
                 self.logger.error(f"Unknown {err}: {resp_content} ")
