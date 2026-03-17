@@ -197,6 +197,7 @@ class KEClientBase(BaseModel):
                 return
             logging.info("Prepare reconnect")
             self._is_reconnecting_ = True
+            logging.info("Trying to stop current client")
             self.stop()
             if bg:
                 def reconnect_wrapper():
