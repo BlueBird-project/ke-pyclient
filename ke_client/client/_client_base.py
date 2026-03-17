@@ -199,7 +199,10 @@ class KEClientBase(BaseModel):
             self._is_reconnecting_ = True
             self.stop()
             if bg:
-                t = Thread(target=self._reconnect)
+                def reconnect_wrapper():
+                    self._reconnect(timeout_s)
+
+                t = Thread(target=reconnect_wrapper)
                 t.start()
             else:
                 self._reconnect(timeout_s=timeout_s)
