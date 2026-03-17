@@ -59,6 +59,8 @@ class UriTemplate(Generic[T]):
             prefix = prefix + "/"
         uri = str(uri)[len(prefix):]
         matched_args = re.match(self.__uri_pattern__, uri)
+        if matched_args is None:
+            raise ValueError(f"URI {uri} does not match the pattern: {self.__uri_pattern__}")
         kwargs = {k: convert(v, self.__obj_attr__[k])
                   for k, v in matched_args.groupdict().items()
                   if k in self.__obj_attr_keys__}
