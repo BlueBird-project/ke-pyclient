@@ -1,5 +1,6 @@
 import logging
 from logging import Logger
+from threading import Thread, RLock
 from typing import Union, Callable, Dict, Optional, Any, List
 from http import HTTPStatus
 import requests
@@ -32,7 +33,10 @@ class KEClientBase(BaseModel):
     _is_running_: bool = False
     _is_reconnecting_: bool = False
     _current_wait_timeout_: int = 30
-    _http_timeout=(15, 180)
+    _http_timeout = (15, 180)
+    _lock = RLock()
+    _registration_pending: bool = False
+
     # endregion
 
     def __init__(self, partial_ki: bool = False,
@@ -134,21 +138,35 @@ class KEClientBase(BaseModel):
     # endregion
 
     # region registration/init
-
-    def register(self):
-        if not self._is_registered:
+    def _register_procedure(self):
+        try:
             self._is_ki_registered = False
             self._register_knowledge_base_()
             self._check_registered_ki_()
             self._is_ki_registered = True
+        finally:
+            self._registration_pending = False
 
-    def reconnect(self, timeout_s: int = 30):
-        if self._is_reconnecting_:
-            time.sleep(self._is_reconnecting_)
-            return
-            # TODO: try reconnecting until its possible
+    def register(self, bg=False):
+        self._lock.acquire()
+        if not self._is_registered and not self._registration_pending:
+            self._registration_pending = True
+            t = Thread(target=self._register_procedure)
+            self._lock.release()
+            t.start()
+            if not bg:
+                t.join()
+        else:
+            self._lock.release()
+            # self._is_ki_registered = False
+            # self._register_knowledge_base_()
+            # self._check_registered_ki_()
+            # self._is_ki_registered = True
+
+    def _reconnect(self, timeout_s: int):
         self._is_reconnecting_ = True
         self._current_wait_timeout_ = max(timeout_s, 5)
+
         max_attempts = 5  # TODO: configurable
         i = 0
         is_connected = False
@@ -161,19 +179,33 @@ class KEClientBase(BaseModel):
             except Exception as err:
                 self.logger.error(f"Failed to reconnect {err}")
             self._current_wait_timeout_ = min(int(self._current_wait_timeout_ * 1.5), 600)
-            is_connected = self.state()
 
+            is_connected = self._is_registered
+        if is_connected:
+            self.start()
+        else:
+            self.logger.error("Failed to reconnect")
         self._is_reconnecting_ = False
 
+    def reconnect(self, timeout_s: int = 30, bg=False):
+        self._lock.acquire()
+        try:
+            if self._is_reconnecting_:
+                logging.info("Pending reconnect")
+                return
+            logging.info("Prepare reconnect")
+            self._is_reconnecting_ = True
+            self.stop()
+            if bg:
+                t = Thread(target=self._reconnect)
+                t.start()
+            else:
+                self._reconnect(timeout_s=timeout_s)
+        finally:
+
+            self._lock.release()
+
     # region registration private
-    # def _set_ki_(self, gp_name: str, handler, ki_type: str) -> KnowledgeInteraction:
-    #     from ke_client.client._ki_utils import require_graph_pattern
-    #     gp = require_graph_pattern(gp_name)
-    #     ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=handler, ki_type=ki_type, graph_pattern=gp)
-    #     if ki.ki_name in self._client_ki_:
-    #         raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
-    #     self._client_ki_[ki.ki_name] = ki
-    #     return ki
 
     def _assert_client_state_(self):
         if not self._is_registered:
@@ -203,7 +235,7 @@ class KEClientBase(BaseModel):
             self.ke_rest_endpoint + "sc/ki/",
             json=body,
             headers={"Knowledge-Base-Id": self.kb_id},
-            verify=self._verify_cert_,timeout=self._http_timeout
+            verify=self._verify_cert_, timeout=self._http_timeout
         )
         if response.status_code != 200:
             try:
@@ -223,8 +255,8 @@ class KEClientBase(BaseModel):
         # except Exception as ex:
         #     self._logger_.error(f"Stop error: {ex}")
         self._registered_ki_ = None
-        self._is_registered = None
-        self.register()
+        self._is_registered = False
+        self.register(bg=False)
 
     def _check_registered_ki_(self):
         if self._registered_ki_ is None:
@@ -292,7 +324,7 @@ class KEClientBase(BaseModel):
                     "reasonerLevel": self.reasoner_level,
                     # "reasonerEnabled":True
                 },
-                verify=self._verify_cert_,timeout=self._http_timeout
+                verify=self._verify_cert_, timeout=self._http_timeout
 
             )
             # TODO handler error in response
@@ -346,12 +378,14 @@ class KEClientBase(BaseModel):
                            register=False) -> Response:
 
         return self._http_request_wrapper(
-            send_request=lambda: requests.post(endpoint, headers=headers, json=ke_request, verify=self._verify_cert_,timeout=self._http_timeout),
+            send_request=lambda: requests.post(endpoint, headers=headers, json=ke_request, verify=self._verify_cert_,
+                                               timeout=self._http_timeout),
             endpoint=endpoint, register=register)
 
     def _api_get_request_(self, endpoint: str, headers: Dict, register=False) -> Response:
         return self._http_request_wrapper(
-            send_request=lambda: requests.get(endpoint, headers=headers, verify=self._verify_cert_,timeout=self._http_timeout),
+            send_request=lambda: requests.get(endpoint, headers=headers, verify=self._verify_cert_,
+                                              timeout=self._http_timeout),
             endpoint=endpoint, register=register)
 
     def _http_request_wrapper(self, send_request: Callable[[], Response], endpoint: str, register: bool):

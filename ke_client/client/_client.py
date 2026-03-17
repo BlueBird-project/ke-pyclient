@@ -210,6 +210,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
     # region client control
 
     def start(self):
+        # TODO: move to client_base
         self._stop_event_ = threading.Event()
 
         # Create and start thread
@@ -217,6 +218,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         self._handler_loop_thread_.start()
 
     def start_sync(self):
+        # TODO: move to client_base
         if self._handler_loop_thread_ is not None or self._stop_event_ is not None:
             raise RuntimeError("Client has already started  in background")
         try:
@@ -225,14 +227,18 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
             self._is_running_ = False
 
     def stop(self):
+        # TODO: move to client_base
         if self._stop_event_ is not None:
             self._stop_event_.set()
-            self._handler_loop_thread_.join()
+            if self._handler_loop_thread_ is not None:
+                self._handler_loop_thread_.join()
             self._stop_event_ = None
             self._handler_loop_thread_ = None
 
     def state(self) -> bool:
+        # TODO: move to client_base
         if self._handler_loop_thread_ is not None:
-            return self._handler_loop_thread_.is_alive() and not self._stop_event_.is_set()
-        return self._is_running_
+            return (self._handler_loop_thread_.is_alive() and not self._stop_event_.is_set()
+                    and (self._is_registered or self._is_reconnecting_))
+        return self._is_running_ and (self._is_registered or self._is_reconnecting_)
     # endregion
