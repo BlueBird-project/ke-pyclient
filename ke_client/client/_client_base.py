@@ -34,7 +34,7 @@ class KEClientBase(BaseModel):
     _is_reconnecting_: bool = False
     _current_wait_timeout_: int = 30
     _http_timeout = (15, 180)
-    _lock = RLock()
+    _lock: RLock
     _registration_pending: bool = False
 
     # endregion
@@ -46,6 +46,7 @@ class KEClientBase(BaseModel):
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._client_ki = {}
+        self._lock = RLock()
 
     # region ki meta
 
