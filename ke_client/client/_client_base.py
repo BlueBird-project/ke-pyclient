@@ -89,6 +89,7 @@ class KEClientBase(BaseModel):
                 self.logger.error(f"{err}: {response.json()["message"]}")
                 # self.register()
                 self.reconnect()
+                raise Exception(f"KE error: {response.json()["message"]}")
             else:
                 self.logger.error(f"Unknown {err}: {resp_content} ")
 
