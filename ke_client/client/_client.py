@@ -54,11 +54,11 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
 
         return cls(kb_id=kb_id, ke_rest_endpoint=ke_settings.rest_endpoint, kb_name=ki.kb_name,
                    kb_description=ki.kb_description, logger=logger, prefixes=ki.prefixes,
-                   partial_ki=ke_settings.allow_partial_ki)
+                   partial_ki=ke_settings.allow_partial_ki, reasoner_level=ke_settings.reasoner_level)
 
     def __init__(self, kb_id: str, kb_name: str, ke_rest_endpoint: str, kb_description: str,
                  verify_cert: bool = ke_vars.VERIFY_SERVER_CERT, logger: Optional[Logger] = None,
-                 prefixes: Optional[dict] = None, partial_ki: bool = False):
+                 prefixes: Optional[dict] = None, partial_ki: bool = False, reasoner_level: int = 1):
         """
 
         :param kb_id: knowledge base URI
@@ -77,11 +77,11 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
                              + " with basic auth: {protocol}://{user}:{password}@{host}:{port}/rest/ "
                              + " without basic auth: {protocol}://{host}:{port}/rest/ "
                              )
-
+        # self.reasoner_level = reasoner_level
         if prefixes is None:
             prefixes = {}
         super().__init__(kb_id=kb_id, kb_name=kb_name, ke_rest_endpoint=ke_rest_endpoint, kb_description=kb_description,
-                         prefixes=prefixes, partial_ki=partial_ki)
+                         prefixes=prefixes, partial_ki=partial_ki, reasoner_level=reasoner_level)
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._logger_.info(f"Initialized client to {ke_rest_endpoint}")

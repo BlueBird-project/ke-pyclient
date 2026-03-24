@@ -47,7 +47,7 @@ https://locahost:8280/rest/
 Knowledge base id (`knowledge_base_id`, _**str**_): client identifier, **must** be unique - currently there no security
 or
 protection from id spoofing mechanism.
-(TODO: currently no plans to implement it, but if there will be enough efforts within the project it might be
+(TODO currently no plans to implement it, but if there will be enough efforts within the project it might be
 implemented )
 
 ### Other Properties
@@ -338,4 +338,8 @@ class TOUSplitURI(SplitURIBase):
 
 ```
  
- 
+ ### KE limits:
+- no binding filtering
+- id spoofing
+- post/react - small REACT with bindings can ddos  the KE. 
+- no control over graph patterns complexity - 
