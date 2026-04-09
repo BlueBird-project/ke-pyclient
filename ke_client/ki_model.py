@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass, field
 from typing import Optional, Union, Callable, List, Dict, Any
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -224,3 +225,22 @@ class KIAskResponse(BaseModel):
         # 'argumentBindingSet' = {list: 1} [{'ts_date_from': '"1970-01-01T00:00:00.001000+00:00"', 'ts_date_to': '"2057-08-16T11:23:02+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>'}]
         # 'resultBindingSet' = {list: 1} [{'time_create': '"2025-12-18T18:23:24.578000+00:00"', 'ts_interval_uri': '<http://ke.bluebird.com/interval/1/2765186582000>', 'ts_uri': '<http://fm.bluebird.com/ts/1/2765186582000/60/0>', 'ts_usage': '<s4ener:Consumption>'}]
         # ]
+
+
+@dataclass
+class SmartClient:
+    knowledgeBaseId: str
+    knowledgeBaseName: str
+    reasonerLevel: int
+    knowledgeBaseDescription: Optional[str] = field(default=None)
+
+
+class SCKnowledgeInteraction(BaseModel):
+    knowledge_interaction_id: str = Field(serialization_alias="knowledgeInteractionId")
+    knowledge_interaction_type: str = Field(serialization_alias="knowledgeInteractionType")
+    knowledge_interaction_name: str = Field(serialization_alias="knowledgeInteractionName")
+    communicative_act: Dict = Field(serialization_alias="communicativeAct")
+    argument_graph_pattern: Optional[str] = Field(serialization_alias="argumentGraphPattern", default=None)
+    graph_pattern: Optional[str] = Field(serialization_alias="graphPattern", default=None)
+    prefixes: Dict = Field(default_factory=lambda: {})
+    knowledge_gaps_enabled: bool = Field(serialization_alias="knowledgeGapsEnabled", default=False)

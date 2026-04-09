@@ -144,7 +144,7 @@ class KEClientBase(BaseModel):
         try:
             self._is_ki_registered = False
             self._register_knowledge_base_()
-            self._check_registered_ki_()
+            self._delete_registered_ki_()
             self._is_ki_registered = True
         finally:
             self._registration_pending = False
@@ -264,7 +264,7 @@ class KEClientBase(BaseModel):
         self._is_registered = False
         self.register(bg=False)
 
-    def _check_registered_ki_(self):
+    def _delete_registered_ki_(self):
         if self._registered_ki_ is None:
             'knowledgeInteractionName'
             # response = self._get_(endpoint=self.ke_rest_endpoint + "sc/ki/",
@@ -279,8 +279,8 @@ class KEClientBase(BaseModel):
                 for ki in response.json():
                     ki_name = ki["knowledgeInteractionName"]
                     ki_id = ki["knowledgeInteractionId"]
-                    # TODO: optional override instead deleting and re registering
                     if ki_name in self._client_ki:
+                        # TODO: optional override instead deleting and re registering
                         response = requests.delete(
                             self.ke_rest_endpoint + "sc/ki/",
                             headers={"Knowledge-Base-Id": self.kb_id, "Knowledge-Interaction-Id": ki_id},
