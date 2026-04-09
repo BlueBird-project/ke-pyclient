@@ -6,4 +6,4 @@ from ._ki_bindings import BindingsBase, TargetedBindings
 from ._ke_properties import KESettings, KnowledgeInteractionConfig
 from ._client import KEClient, OptionalLiteral, OptionalURIRef
 from ._ki_holder import KIHolder
-from _rest_client import KERestClient
+from ._rest_client import KERestClient
