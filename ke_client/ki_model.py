@@ -227,20 +227,30 @@ class KIAskResponse(BaseModel):
         # ]
 
 
-@dataclass
-class SmartClient:
-    knowledgeBaseId: str
-    knowledgeBaseName: str
-    reasonerLevel: int
-    knowledgeBaseDescription: Optional[str] = field(default=None)
+# @dataclass
+# class SmartClient:
+#     knowledgeBaseId: str
+#     knowledgeBaseName: str
+#     reasonerLevel: int
+#     knowledgeBaseDescription: Optional[str] = field(default=None)
+class SmartClient(BaseModel):
+    knowledge_base_id: str = Field(serialization_alias="knowledgeBaseId", alias="knowledgeBaseId")
+    knowledge_base_name: str = Field(serialization_alias="knowledgeBaseName", alias="knowledgeBaseName")
+    reasoner_level: int = Field(serialization_alias="reasonerLevel", alias="reasonerLevel")
+    knowledge_base_description: Optional[str] = Field(serialization_alias="knowledgeBaseDescription",
+                                                      alias="knowledgeBaseDescription", default=None)
 
 
 class SCKnowledgeInteraction(BaseModel):
-    knowledge_interaction_id: str = Field(serialization_alias="knowledgeInteractionId")
-    knowledge_interaction_type: str = Field(serialization_alias="knowledgeInteractionType")
-    knowledge_interaction_name: str = Field(serialization_alias="knowledgeInteractionName")
-    communicative_act: Dict = Field(serialization_alias="communicativeAct")
-    argument_graph_pattern: Optional[str] = Field(serialization_alias="argumentGraphPattern", default=None)
-    graph_pattern: Optional[str] = Field(serialization_alias="graphPattern", default=None)
+    knowledge_interaction_id: str = Field(serialization_alias="knowledgeInteractionId", alias="knowledgeInteractionId")
+    knowledge_interaction_type: str = Field(serialization_alias="knowledgeInteractionType",
+                                            alias="knowledgeInteractionType")
+    knowledge_interaction_name: str = Field(serialization_alias="knowledgeInteractionName",
+                                            alias="knowledgeInteractionName")
+    communicative_act: Dict = Field(serialization_alias="communicativeAct", alias="communicativeAct")
+    argument_graph_pattern: Optional[str] = Field(serialization_alias="argumentGraphPattern",
+                                                  alias="argumentGraphPattern", default=None)
+    graph_pattern: Optional[str] = Field(serialization_alias="graphPattern", alias="graphPattern", default=None)
     prefixes: Dict = Field(default_factory=lambda: {})
-    knowledge_gaps_enabled: bool = Field(serialization_alias="knowledgeGapsEnabled", default=False)
+    knowledge_gaps_enabled: bool = Field(serialization_alias="knowledgeGapsEnabled", alias="knowledgeGapsEnabled",
+                                         default=False)
