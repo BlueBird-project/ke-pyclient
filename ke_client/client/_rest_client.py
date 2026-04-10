@@ -38,7 +38,7 @@ class KERestClient:
             except Exception:
                 error_message = f"Registration failed,status_code: {response.status_code}"
             raise Exception(error_message)
-        sc_list = adapter.validate_json(response.json())
+        sc_list = adapter.validate_json(response.content)
         return sc_list
 
     def get_sc_ki(self, kb_id: str) -> List[SCKnowledgeInteraction]:
@@ -54,5 +54,5 @@ class KERestClient:
             except Exception:
                 error_message = f"Registration failed,status_code: {response.status_code}"
             raise Exception(error_message)
-        ki_list = adapter.validate_json(response.json())
+        ki_list = adapter.validate_json(response.content)
         return ki_list
