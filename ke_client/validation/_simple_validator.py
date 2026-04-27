@@ -5,7 +5,7 @@ from rdflib.collection import Collection
 from rdflib.namespace import XSD
 from collections import defaultdict
 
-from ke_client.client.validation._gp_validator import GraphValidator, infer_literal_datatype, is_variable
+from ke_client.validation._gp_validator import GraphValidator, infer_literal_datatype, is_variable
 
 
 # region utils

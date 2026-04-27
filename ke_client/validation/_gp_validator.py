@@ -31,8 +31,10 @@ def infer_literal_datatype(literal: Literal):
 
 # endregion
 
-
 class GraphValidator:
+    """
+    GraphValidator checks if graph pattern conforms the ontologies
+    """
     def __init__(self, ontology_graph: Graph):
         self.ontology_graph = ontology_graph
 
