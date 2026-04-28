@@ -1,3 +1,4 @@
+import time
 from typing import List, Tuple, Dict, Any, Optional
 
 from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern, process_pattern, get_ask, matches_pattern, \
@@ -131,50 +132,50 @@ class SemanticExt:
             return None
             # return {}
         # here starts pattern inference /extensions
-        for other_ki in ki_list:
-            other_pattern = other_kb_cache[other_ki]
-            matches = matches_pattern(other_pattern.processed_pattern, query=ki_pattern.sparql_ask)
-            if matches:
-                # Other graph has some extra variables , set them as nil
-                # print("1")
-                new_triples, new_triple_map, all_triple_mapping = extract_new_triples(other_pattern.triples,
-                                                                                      ki_pattern.triples)
-                # check this before checking triples with RDF nil , find missing triples and add them as RDF nil
 
-                ki_pattern.set_new_triples(ki_id=other_ki.knowledge_interaction_id, new_triples=new_triples,
-                                           mapping=all_triple_mapping, new_mapping=new_triple_map)
-                return ki_pattern
         for other_ki in ki_list:
             other_pattern = other_kb_cache[other_ki]
+            start = time.time_ns()
+            try:
+                # sparql
+                extended_pattern: Optional[KIPattern] \
+                    = self._extend_variables(other_ki=other_ki, other_pattern=other_pattern, ki_pattern=ki_pattern)
+                if extended_pattern is not None:
+                    return extended_pattern
+            finally:
+                print(f"Process time (1): {time.time_ns() - start}")
+        for other_ki in ki_list:
             # Extend pattern with ontology
-            matches = matches_pattern(ki_pattern.extended_pattern, query=other_pattern.sparql_ask)
-            if matches:
-                # extended graph matches, all triples with extra knowledge are allowed
-                # ASK graph pattern is subgraph of answer          # but with some extensions
-                # find missing triples (base on ontology, rdf nil is not required here)
-                # from ASK and add to answer (verify again - treat new graph as in second step)
-
-                new_triples, new_triple_map, all_triple_mapping = extract_new_triples(other_pattern.triples,
-                                                                                      ki_pattern.triples,
-                                                                                      allow_extra_knowledge=True)
-                ki_pattern.set_new_triples(ki_id=other_ki.knowledge_interaction_id, new_triples=new_triples,
-                                           mapping=all_triple_mapping, new_mapping=new_triple_map)
-                return ki_pattern
+            other_pattern = other_kb_cache[other_ki]
+            start = time.time_ns()
+            try:
+                # ontology inference + sparql
+                extended_pattern: Optional[KIPattern] \
+                    = self._infer_triples(other_ki=other_ki, other_pattern=other_pattern, ki_pattern=ki_pattern)
+                if extended_pattern is not None:
+                    return extended_pattern
+            finally:
+                print(f"Process time (2): {time.time_ns() - start}")
 
         for other_ki in ki_list:
-            # TODO: find the biggest matching graph or the smallest?
+            # triple match - no sparql
             other_pattern = other_kb_cache[other_ki]
-            # similar to previous , but handles the problem with constants in the graph bindings
-            # (one graph has variable and the other has predefined URI)
-            res = self._check_extra_triple(ki_id=other_ki.knowledge_interaction_id, ask_triples=other_pattern.triples,
-                                           ki_pattern=ki_pattern)
-            if res is not None:
-                # print("3")
-                return res
+            start = time.time_ns()
+            try:
+                extended_pattern = self._check_extra_triple(ki_id=other_ki.knowledge_interaction_id,
+                                                            ask_triples=other_pattern.triples,
+                                                            ki_pattern=ki_pattern)
+                if extended_pattern is not None:
+                    return extended_pattern
+            finally:
+                print(f"Process time (3): {time.time_ns() - start}")
         return None
 
     @staticmethod
     def _check_extra_triple(ki_id: str, ask_triples: List[Tuple], ki_pattern: KIPattern):
+        # TODO: find the biggest matching graph or the smallest?
+        # similar to previous , but handles the problem with constants in the graph bindings
+        # (one graph has variable and the other has predefined URI)
         matches = triple_subgraph_check(ki_pattern.triples, ask_triples)
         if matches:
             # ASK graph pattern has extra triples with variables
@@ -201,3 +202,48 @@ class SemanticExt:
             if matches_pattern(ki_pattern.processed_pattern, query=other_pattern.sparql_ask):
                 # print(f"SPARQL SUBGRAPH MATCH: {other_pattern} with {ki_pattern}")
                 return True
+
+    @staticmethod
+    def _extend_variables(other_ki, other_pattern, ki_pattern: KIPattern) -> Optional[KIPattern]:
+        """
+        subgraph check with sparql
+        extend current graph pattern with rdf:nil variables
+        :param other_pattern:
+        :return:
+        """
+        matches = matches_pattern(other_pattern.processed_pattern, query=ki_pattern.sparql_ask)
+        if matches:
+            # Other graph has some extra variables , set them as nil
+            new_triples, new_triple_map, all_triple_mapping = extract_new_triples(other_pattern.triples,
+                                                                                  ki_pattern.triples)
+            # check this before checking triples with RDF nil , find missing triples and add them as RDF nil
+
+            ki_pattern.set_new_triples(ki_id=other_ki.knowledge_interaction_id, new_triples=new_triples,
+                                       mapping=all_triple_mapping, new_mapping=new_triple_map)
+            return ki_pattern
+        else:
+            return None
+
+    @staticmethod
+    def _infer_triples(other_ki, other_pattern: KIPattern, ki_pattern: KIPattern) -> Optional[KIPattern]:
+        """
+        infer triples using ontology - subgraph check using inferred triples  and sparqkl
+        :param other_ki:
+        :param other_pattern:
+        :param ki_pattern:
+        :return:
+        """
+        matches = matches_pattern(ki_pattern.extended_pattern, query=other_pattern.sparql_ask)
+        if matches:
+            # extended graph matches, all triples with extra knowledge are allowed
+            # ASK graph pattern is subgraph of answer
+            # find/infer missing triples (based on ontology, rdf nil is not required here)
+            # from ASK and add to answer
+            new_triples, new_triple_map, all_triple_mapping = extract_new_triples(other_pattern.triples,
+                                                                                  ki_pattern.triples,
+                                                                                  allow_extra_knowledge=True)
+            ki_pattern.set_new_triples(ki_id=other_ki.knowledge_interaction_id, new_triples=new_triples,
+                                       mapping=all_triple_mapping, new_mapping=new_triple_map)
+            return ki_pattern
+        else:
+            return None
