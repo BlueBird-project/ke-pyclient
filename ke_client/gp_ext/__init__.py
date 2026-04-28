@@ -1,1 +1,1 @@
-from _semantic_utils import KIPattern, SemanticExt
+from ._semantic_utils import KIPattern, SemanticExt
