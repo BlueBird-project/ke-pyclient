@@ -123,11 +123,11 @@ class SimpleValidator(GraphValidator):
             ontology_path = ke_settings.validation_ontology_path
             if ontology_path is None:
                 raise ValueError("'validation_ontology_path' is not defined")
-            turtle_files = [fn for fn in os.listdir(ontology_path) if fn.endswith(".ttl")]
+            turtle_files = [os.path.join(ontology_path,fn) for fn in os.listdir(ontology_path) if fn.endswith(".ttl")]
 
         ontology_graph = Graph()
-        for ttl_file in turtle_files:
-            ontology_graph.parse(ttl_file, format="turtle")
+        for ttl_file_path in turtle_files:
+            ontology_graph.parse(ttl_file_path, format="turtle")
         return SimpleValidator(ontology_graph=ontology_graph)
 
     def _init_indexes(self):
