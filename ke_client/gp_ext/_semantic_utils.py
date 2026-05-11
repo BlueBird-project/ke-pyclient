@@ -152,6 +152,11 @@ class SemanticExt:
     kb_id: str
     _sc_list: List[SmartClient] = None
 
+    def __init__(self, kb_id: str):
+        # , ki_list: Optional[List[SCKnowledgeInteraction]] = None):
+        self.kb_id = kb_id
+        self.ki_cache = {kb_id: SemanticExt.KBCache(kb_id=kb_id, ki_patterns={})}
+
     # def __init__(self, kb_id: str, ki_list: List[SCKnowledgeInteraction], only_answer_ki=True):
     #     self.kb_id = kb_id
     #     if only_answer_ki:
@@ -191,7 +196,7 @@ class SemanticExt:
             self._sc_list = KERestClient.get_client().list_sc()
         return self._sc_list
 
-    def match_ask(self, ki_name: str, handler: Optional[Callable] ) -> List[KnowledgeInteraction]:
+    def match_ask(self, ki_name: str, handler: Optional[Callable]) -> List[KnowledgeInteraction]:
         additional_patterns: List[KnowledgeInteraction] = []
         for i, sc in enumerate(self.sc_list):
             kb_id = sc.knowledge_base_id
