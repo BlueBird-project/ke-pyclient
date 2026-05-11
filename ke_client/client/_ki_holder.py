@@ -121,7 +121,8 @@ class KIHolder:
         if ki.ki_name in self._client_ki:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki[ki.ki_name] = ki
-        self.try_extend_ki(graph_pattern=gp, ki_type=ki_type, handler=measured_handler)
+        if ki_type == KnowledgeInteractionType.ANSWER:
+            self.try_extend_ki(graph_pattern=gp, ki_type=ki_type, handler=measured_handler)
         return ki
 
     @staticmethod
