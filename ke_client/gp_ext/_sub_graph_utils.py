@@ -3,19 +3,17 @@ import re
 from typing import List, Dict, Tuple
 
 from ke_client import rdf_nil
-from rdflib import Graph, Namespace, RDF, OWL
+from rdflib import Graph, Namespace, RDF, OWL, RDFS,XSD
 from rdflib.term import Variable, URIRef, Literal
 
 _DEFAULT_PREFIX_MAP = {
     "rdf": RDF,  # Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-    "rdfs": Namespace("http://www.w3.org/2000/01/rdf-schema#"),
-    "xsd": Namespace("http://www.w3.org/2001/XMLSchema#"),
+    "rdfs": RDFS,  # Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+    "xsd": XSD,
+    "owl": OWL,
     "saref": Namespace("https://saref.etsi.org/core/"),
     "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
     # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
-    "ex": Namespace("http://example.org/"),
-    "owl": OWL,
-
 }
 
 
@@ -162,7 +160,8 @@ def process_pattern(pattern_str, extend=False, ontology_files: List[str] = None)
     g.parse(data=grounded_str, format="turtle")
     if extend:
         if ontology_files is None:
-            ontology_files = ["ontologies/bluebird.ttl"]
+            from ke_client import ke_settings
+            ontology_files = ke_settings.extension_ontology_files
         for ttl_file in ontology_files:
             g.parse(ttl_file, format="turtle")
     return g

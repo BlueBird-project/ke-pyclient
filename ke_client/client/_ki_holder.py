@@ -10,7 +10,8 @@ from ke_client.client._ki_exceptions import KIError, KITypeError
 
 from ke_client.client._ki_utils import verify_in_bindings_ki, verify_out_bindings_ki, _verify_required_bindings, \
     prepare_ke_request
-from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction
+from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction, \
+    GraphPattern
 from ke_client.utils import to_json, time_utils
 
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
@@ -89,9 +90,23 @@ class KIHolder:
     def list_ki(self):
         return self._client_ki.values()
 
+    def try_extend_ki(self, graph_pattern: GraphPattern, ki_type: str, handler: Optional[Callable]):
+        from ke_client.gp_ext import get_gp_extender
+        from ke_client import ke_settings
+        if ke_settings.extend_graph_patterns:
+            gp_ext = get_gp_extender()
+            ki_pattern = gp_ext.set_ki(gp=graph_pattern, ki_type=ki_type)
+            extended_ki = gp_ext.match_ask(ki_name=ki_pattern.ki_name, handler=handler)
+            logging.info(f"Extending {ki_pattern.ki_name} with {len(extended_ki)} ki patterns .")
+            for ki in extended_ki:
+                if ki.ki_name in self._client_ki:
+                    raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")
+                self._client_ki[ki.ki_name] = ki
+
     def _set_ki_(self, gp_name: str, handler, ki_type: str, call_ctx: str) -> KnowledgeInteraction:
-        from ke_client.client._ki_utils import require_graph_pattern
+        from ke_client.client._ki_utils import require_graph_pattern, try_validate_gp
         gp = require_graph_pattern(gp_name)
+        try_validate_gp(gp=gp)
 
         def measured_handler(kb_id: str, bindings: Optional[List[Dict[str, Any]]]):
             current_ts = time_utils.current_timestamp()
@@ -101,11 +116,12 @@ class KIHolder:
                 logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) for {kb_id}")
             return result
 
-        ki = KnowledgeInteraction(ki_name=f"{ki_type}-{gp.name}", handler=measured_handler, ki_type=ki_type,
+        ki = KnowledgeInteraction(ki_name=gp.ki_name(ki_type=ki_type), handler=measured_handler, ki_type=ki_type,
                                   graph_pattern=gp)
         if ki.ki_name in self._client_ki:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki[ki.ki_name] = ki
+        self.try_extend_ki(graph_pattern=gp, ki_type=ki_type, handler=measured_handler)
         return ki
 
     @staticmethod

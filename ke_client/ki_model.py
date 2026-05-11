@@ -11,6 +11,7 @@ RDF_BINDING_REGEX = r"\?[A-Za-z_][A-Za-z0-9_]+"
 rdf_binding_pattern = re.compile(RDF_BINDING_REGEX)
 
 
+# YAML graph pattern definition
 class GraphPattern(BaseModel):
     name: str = Field(...)
     prefixes: Optional[dict] = None
@@ -43,7 +44,6 @@ class GraphPattern(BaseModel):
         return None
 
     def verify_required_bindings(self, bindings: Union[Dict[str, Any], Any]):
-
         from ke_client import BindingsBase
         if self.required_bindings is None:
             return
@@ -77,6 +77,24 @@ class GraphPattern(BaseModel):
         # all required variables are in the result set
         # TODO: verify if variables names can be switched in the result binding set
         return {k: v for k, v in result_binding_set.items() if k in self.result_pattern_vars}
+
+    def ki_name(self, ki_type):
+        return f"{ki_type}-{self.name}"
+
+    def init_sc_ki(self, ki_type: str):
+        if ki_type in [KnowledgeInteractionType.ASK, KnowledgeInteractionType.ANSWER]:
+            return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
+                                              knowledge_interaction_name=self.ki_name(ki_type=ki_type),
+                                              graph_pattern=self.graph_pattern,
+                                              prefixes=self.prefixes_safe)
+        elif ki_type in [KnowledgeInteractionType.POST, KnowledgeInteractionType.REACT]:
+            return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
+                                              knowledge_interaction_name=self.ki_name(ki_type=ki_type),
+                                              argument_graph_pattern=self.argument_graph_pattern,
+                                              result_graph_pattern=self.result_graph_pattern,
+                                              prefixes=self.prefixes_safe)
+        else:
+            raise ValueError(f"{self.name}: Invalid ki_type:{ki_type} ")
 
 
 class KnowledgeInteractionType(BaseEnum):
@@ -241,16 +259,24 @@ class SmartClient(BaseModel):
                                                       alias="knowledgeBaseDescription", default=None)
 
 
-class SCKnowledgeInteraction(BaseModel):
-    knowledge_interaction_id: str = Field(serialization_alias="knowledgeInteractionId", alias="knowledgeInteractionId")
+class SCKnowledgeInteractionBase(BaseModel):
     knowledge_interaction_type: str = Field(serialization_alias="knowledgeInteractionType",
                                             alias="knowledgeInteractionType")
     knowledge_interaction_name: str = Field(serialization_alias="knowledgeInteractionName",
                                             alias="knowledgeInteractionName")
-    communicative_act: Dict = Field(serialization_alias="communicativeAct", alias="communicativeAct")
+    prefixes: Dict = Field(default_factory=lambda: {})
+    # for ASK/ANSWEAR
+    graph_pattern: Optional[str] = Field(serialization_alias="graphPattern", alias="graphPattern", default=None)
+    # for POST/REACT
     argument_graph_pattern: Optional[str] = Field(serialization_alias="argumentGraphPattern",
                                                   alias="argumentGraphPattern", default=None)
-    graph_pattern: Optional[str] = Field(serialization_alias="graphPattern", alias="graphPattern", default=None)
-    prefixes: Dict = Field(default_factory=lambda: {})
+    # for POST/REACT
+    result_graph_pattern: Optional[str] = Field(serialization_alias="resultGraphPattern", alias="resultGraphPattern",
+                                                default=None)
+
+
+class SCKnowledgeInteraction(SCKnowledgeInteractionBase):
+    knowledge_interaction_id: str = Field(serialization_alias="knowledgeInteractionId", alias="knowledgeInteractionId")
+    communicative_act: Dict = Field(serialization_alias="communicativeAct", alias="communicativeAct")
     knowledge_gaps_enabled: bool = Field(serialization_alias="knowledgeGapsEnabled", alias="knowledgeGapsEnabled",
                                          default=False)

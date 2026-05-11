@@ -42,6 +42,16 @@ def require_graph_pattern(gp_name) -> GraphPattern:
     return gp
 
 
+def try_validate_gp(gp: GraphPattern):
+    from ke_client import ke_settings
+    if ke_settings.validate_graph_patterns:
+        from ke_client.validation import get_validator
+        from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern
+        get_validator().validate_pattern(parse_turtle_pattern(gp.pattern_value))
+        if gp.result_pattern_value is not None:
+            get_validator().validate_pattern(parse_turtle_pattern(gp.result_pattern_value))
+
+
 # def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
 #     _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
 #                k in params}

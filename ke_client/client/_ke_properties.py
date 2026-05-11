@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
@@ -25,6 +25,22 @@ class KESettings(DictBaseSettings):
     reasoner_level: int = Field(default=1)
     allow_partial_ki: bool = Field(default=False)
     ki_vars: Optional[dict[str, Any]] = Field(default=None)
+    ontology_prefixes: Optional[dict[str, Any]] = Field(default=None)
+
+    validation_ontology_path: Optional[str] = Field(default=None, description="location of turtle ontology files")
+    extension_ontology_files: List[str] = Field(default_factory=lambda: ["ontologies/bluebird.ttl"],
+                                                description="Turtle ontology files used in the graph "
+                                                            "extension process  of turtle ontology files")
+    validate_graph_patterns: bool = Field(default=False,
+                                          description="Check KI graph patterns if they conform the ontologies "
+                                                      "loaded located in  `ontology_path` ")
+    extend_graph_patterns: bool = Field(default=False,
+                                        description="Extend ANSWER KI graph patterns to other ASK KI   ")
+    extend_graph_patterns_mode: str = Field(default=0,
+                                            description="0b0000 - "
+                                                        "0b0001 - simple triple match, "
+                                                        "0b0010 - sparql matching , "
+                                                        "0b0100 - sparql + ontology extension")
     model_config = SettingsConfigDict(env_prefix='KE_', env_file=ke_vars.ENV_FILE, env_file_encoding="utf-8",
                                       extra="ignore")
 
@@ -64,6 +80,11 @@ class KESettings(DictBaseSettings):
 
         return cls(dict_settings={})
         # return super().load(yml_path=yml_path, section_name="KE".lower())
+
+    def has_extend_graph_patterns_mode(self, extend_graph_patterns_mode: int) -> bool:
+        return True if int(self.extend_graph_patterns_mode, 2) | extend_graph_patterns_mode else False
+
+
 
 
 class KnowledgeInteractionConfig(BaseSettings, extra=Extra.allow):

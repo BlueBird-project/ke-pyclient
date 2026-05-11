@@ -15,12 +15,20 @@ class KERestClient:
     _verify_cert_: bool = True
     _http_timeout = (15, 180)
     ke_rest_endpoint: str
+    _instance: 'KERestClient' = None
 
     def __init__(self, ke_rest_endpoint: str, verify_cert: bool = ke_vars.VERIFY_SERVER_CERT,
                  logger: Optional[Logger] = None):
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self.ke_rest_endpoint = ke_rest_endpoint
+
+    @staticmethod
+    def get_client():
+        if KERestClient._instance is None:
+            from ke_client import ke_settings
+            KERestClient._instance = KERestClient(ke_rest_endpoint=ke_settings.rest_endpoint)
+        return KERestClient._instance
 
     @property
     def logger(self):

@@ -1,4 +1,5 @@
-from typing import List, Dict, Set, Union
+import os
+from typing import List, Dict, Set, Union, Optional
 
 from rdflib import Graph, RDF, RDFS, OWL, URIRef, Literal, Variable, BNode
 from rdflib.collection import Collection
@@ -116,7 +117,14 @@ class SimpleValidator(GraphValidator):
         self.known_resources.update(_known_resources)
 
     @staticmethod
-    def load(turtle_files: List[str]):
+    def load(turtle_files: Optional[List[str]] = None):
+        if turtle_files is None:
+            from ke_client import ke_settings
+            ontology_path = ke_settings.validation_ontology_path
+            if ontology_path is None:
+                raise ValueError("'validation_ontology_path' is not defined")
+            turtle_files = [fn for fn in os.listdir(ontology_path) if fn.endswith(".ttl")]
+
         ontology_graph = Graph()
         for ttl_file in turtle_files:
             ontology_graph.parse(ttl_file, format="turtle")
