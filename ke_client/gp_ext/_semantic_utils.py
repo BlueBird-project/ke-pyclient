@@ -126,7 +126,7 @@ class SemanticExt:
 
         def __getitem__(self, ki: Union[SCKnowledgeInteractionBase, SCKnowledgeInteraction]) -> KIPattern:
             if ki.knowledge_interaction_name not in self.ki_patterns:
-                if type(ki) is SCKnowledgeInteraction:
+                if type(ki) is SCKnowledgeInteractionBase:
                     ki_id = None
                 else:
                     ki_id = ki.knowledge_interaction_id
