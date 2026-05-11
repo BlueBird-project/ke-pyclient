@@ -40,7 +40,8 @@ class KESettings(DictBaseSettings):
                                             description="0b0000 - "
                                                         "0b0001 - simple triple match, "
                                                         "0b0010 - sparql matching , "
-                                                        "0b0100 - sparql + ontology extension")
+                                                        "0b0100 - sparql + ontology extension"
+                                                        "0b1111 - ALL ")
     model_config = SettingsConfigDict(env_prefix='KE_', env_file=ke_vars.ENV_FILE, env_file_encoding="utf-8",
                                       extra="ignore")
 
