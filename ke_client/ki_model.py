@@ -260,7 +260,10 @@ class SmartClient(BaseModel):
 
 
 class SCKnowledgeInteractionBase(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(
+        validate_by_name=True,
+        validate_by_alias=True,
+    )
     knowledge_interaction_type: str = Field(serialization_alias="knowledgeInteractionType",
                                             alias="knowledgeInteractionType")
     knowledge_interaction_name: str = Field(serialization_alias="knowledgeInteractionName",
