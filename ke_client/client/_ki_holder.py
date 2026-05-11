@@ -13,6 +13,7 @@ from ke_client.client._ki_utils import verify_in_bindings_ki, verify_out_binding
 from ke_client.ki_model import KnowledgeInteractionType, KIPostResponse, KIAskResponse, KnowledgeInteraction, \
     GraphPattern
 from ke_client.utils import to_json, time_utils
+from ke_client.utils.enum_utils import EnumItem
 
 KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 
@@ -103,7 +104,7 @@ class KIHolder:
                     raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")
                 self._client_ki[ki.ki_name] = ki
 
-    def _set_ki_(self, gp_name: str, handler, ki_type: str, call_ctx: str) -> KnowledgeInteraction:
+    def _set_ki_(self, gp_name: str, handler, ki_type: Union[str, EnumItem], call_ctx: str) -> KnowledgeInteraction:
         from ke_client.client._ki_utils import require_graph_pattern, try_validate_gp
         gp = require_graph_pattern(gp_name)
         try_validate_gp(gp=gp)
@@ -122,7 +123,10 @@ class KIHolder:
             raise Exception(f"Duplicate knowledge interaction '{gp.name}' ({ki.ki_type}).")
         self._client_ki[ki.ki_name] = ki
         if ki_type == KnowledgeInteractionType.ANSWER:
-            self.try_extend_ki(graph_pattern=gp, ki_type=ki_type, handler=measured_handler)
+            if type(ki_type) is EnumItem:
+                self.try_extend_ki(graph_pattern=gp, ki_type=ki_type.value, handler=measured_handler)
+            else:
+                self.try_extend_ki(graph_pattern=gp, ki_type=ki_type, handler=measured_handler)
         return ki
 
     @staticmethod
