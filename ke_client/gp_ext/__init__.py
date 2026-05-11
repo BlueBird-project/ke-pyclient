@@ -1,6 +1,6 @@
 from ._semantic_utils import KIPattern, SemanticExt
 
-_gp_extender: SemanticExt
+_gp_extender: SemanticExt = None
 
 
 def get_gp_extender() -> SemanticExt:
