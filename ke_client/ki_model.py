@@ -85,13 +85,13 @@ class GraphPattern(BaseModel):
         if ki_type in [KnowledgeInteractionType.ASK, KnowledgeInteractionType.ANSWER]:
             return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
                                               knowledge_interaction_name=self.ki_name(ki_type=ki_type),
-                                              graph_pattern=self.graph_pattern,
+                                              graph_pattern=self.pattern_value,
                                               prefixes=self.prefixes_safe)
         elif ki_type in [KnowledgeInteractionType.POST, KnowledgeInteractionType.REACT]:
             return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
                                               knowledge_interaction_name=self.ki_name(ki_type=ki_type),
-                                              argument_graph_pattern=self.argument_graph_pattern,
-                                              result_graph_pattern=self.result_graph_pattern,
+                                              argument_graph_pattern=self.pattern_value,
+                                              result_graph_pattern=self.result_pattern_value,
                                               prefixes=self.prefixes_safe)
         else:
             raise ValueError(f"{self.name}: Invalid ki_type:{ki_type} ")
