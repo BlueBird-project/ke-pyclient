@@ -203,14 +203,14 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             # rdf:type validation
             # --------------------------------------------------
-            if p == RDF.type:
+            if p == RDF.type and not is_variable(o):
                 if o not in self.known_classes:
                     errors.append(f"Unknown class: {o}")
                 continue
             # --------------------------------------------------
             # predicate existence
             # --------------------------------------------------
-            if p not in self.known_properties:
+            if p not in self.known_properties :
                 errors.append(f"Unknown predicate: {p}")
                 continue
             # --------------------------------------------------
