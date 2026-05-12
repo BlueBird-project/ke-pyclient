@@ -36,7 +36,7 @@ class KESettings(DictBaseSettings):
                                                       "loaded located in  `ontology_path` ")
     extend_graph_patterns: bool = Field(default=False,
                                         description="Extend ANSWER KI graph patterns to other ASK KI   ")
-    extend_graph_patterns_mode: str = Field(default=0,
+    extend_graph_patterns_mode: str = Field(default="0",
                                             description="0b0000 - "
                                                         "0b0001 - simple triple match, "
                                                         "0b0010 - sparql matching , "
