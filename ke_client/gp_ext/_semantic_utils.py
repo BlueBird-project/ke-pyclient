@@ -50,8 +50,9 @@ class KIPattern:
 
     @property
     def triples(self) -> List[Tuple[Node, Node, Node]]:
+        from ke_client import ke_settings
         if self._triples is None:
-            self._triples = parse_turtle_pattern(self.graph_pattern)
+            self._triples = parse_turtle_pattern(self.graph_pattern, prefixes=ke_settings.get_prefix_namespace())
         return self._triples
 
     @property

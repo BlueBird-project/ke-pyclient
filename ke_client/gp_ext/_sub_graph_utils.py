@@ -345,7 +345,7 @@ def _split_objects(obj_str: str):
 
 # endregion
 
-def parse_turtle_pattern(pattern: str, prefixes: Dict[str, str] = None):
+def parse_turtle_pattern(pattern: str, prefixes: Dict[str, Namespace] = None):
     triples = []
 
     statements = _split_statements(pattern)
