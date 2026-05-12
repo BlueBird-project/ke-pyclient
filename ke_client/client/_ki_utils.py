@@ -10,7 +10,7 @@ from ke_client.ki_model import GraphPattern
 from ke_client.ki_model import rdf_binding_pattern, KnowledgeInteractionType, KnowledgeInteraction
 from ke_client.utils.enum_utils import EnumItem
 from ._ki_bindings import BindingsBase, TargetedBindings
-from ._ki_exceptions import KIError
+from ._ki_exceptions import KIError, PatternError
 
 
 # TODO make register, and other methods thread safe  -> locks
@@ -47,9 +47,14 @@ def try_validate_gp(gp: GraphPattern):
     if ke_settings.validate_graph_patterns:
         from ke_client.validation import get_validator
         from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern
-        get_validator().validate_pattern(parse_turtle_pattern(gp.pattern_value))
+        pattern_errors = get_validator().validate_pattern(parse_turtle_pattern(gp.pattern_value))
+        result_pattern_errors = None
         if gp.result_pattern_value is not None:
-            get_validator().validate_pattern(parse_turtle_pattern(gp.result_pattern_value))
+            result_pattern_errors = get_validator().validate_pattern(parse_turtle_pattern(gp.result_pattern_value))
+        if pattern_errors or result_pattern_errors:
+            raise PatternError(message=f"Invalid patterns for {gp.name}",
+                               pattern_errors=pattern_errors,
+                               result_pattern_errors=result_pattern_errors,ctx="try_validate_gp")
 
 
 # def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
