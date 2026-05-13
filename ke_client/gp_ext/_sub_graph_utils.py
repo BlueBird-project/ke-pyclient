@@ -174,6 +174,7 @@ def matches_pattern(in_graph, query):
     # print(in_graph.query(select_pattern).bindings)
     return bool(in_graph.query(query))
 
+# todo
 
 def get_ask(ask_pattern, prefixes: Dict[str, str] = None) -> str:
     if prefixes is None:

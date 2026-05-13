@@ -2,12 +2,14 @@ import logging
 import time
 from typing import List, Tuple, Dict, Any, Optional, Union, Callable
 
+from rdflib.namespace import DefinedNamespace
+from rdflib import Graph, Node, Namespace, RDF, RDFS, XSD, OWL
+
 from ke_client.gp_ext._model import GraphPatternExtMode
 from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern, process_pattern, get_ask, matches_pattern, \
     extract_new_triples, is_subgraph_pattern, triple_subgraph_check
 from ke_client.ki_model import SCKnowledgeInteraction, KnowledgeInteractionType, SCKnowledgeInteractionBase, \
     GraphPattern, SmartClient, KnowledgeInteraction
-from rdflib import Graph, Node, Namespace, RDF, RDFS, XSD, OWL
 
 
 class KIPattern:
@@ -16,7 +18,8 @@ class KIPattern:
     graph_pattern: str
     interaction_type: str
     _ki_id: Optional[str] = None
-    _prefixes: Dict[str, Namespace]
+    _namespace_prefix: Dict[str, Union[Namespace, DefinedNamespace]]
+    _prefixes: Dict[str, str]
     _triples: List[Tuple[Node, Node, Node]] = None
     _processed_pattern: Graph = None
     _extended_pattern: Graph = None
@@ -28,31 +31,31 @@ class KIPattern:
     def __repr__(self):
         return f"{self.kb_id}:{self.ki_name}"
 
-    def __init__(self, kb_id: str, ki_name: str, interaction_type: str, graph_pattern: str,
+    def __init__(self, kb_id: str, ki_name: str, interaction_type: str, graph_pattern: str, prefixes: Dict,
                  ki_id: Optional[str] = None):
         self.kb_id = kb_id
         self.ki_name = ki_name
         self.interaction_type = interaction_type
         self.graph_pattern = graph_pattern
         self._ki_id = ki_id
-        default_prefixes = {
+        self._prefixes = prefixes
+        namespace_prefix = {
             "rdf": RDF,
-            "rdfs": RDFS,  # Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+            "rdfs": RDFS,
             "xsd": XSD,
             "owl": OWL,
             # "saref": Namespace("https://saref.etsi.org/core/"),
             # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
             # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
         }
-        from ke_client import ke_settings
-        if ke_settings.ontology_prefixes:
-            default_prefixes.update({k: Namespace(v) for k, v in ke_settings.ontology_prefixes.items()})
+        namespace_prefix.update({k: Namespace(v) for k, v in prefixes.items()})
+
+        self._namespace_prefix = namespace_prefix
 
     @property
     def triples(self) -> List[Tuple[Node, Node, Node]]:
-        from ke_client import ke_settings
         if self._triples is None:
-            self._triples = parse_turtle_pattern(self.graph_pattern, prefixes=ke_settings.get_prefix_namespace())
+            self._triples = parse_turtle_pattern(self.graph_pattern, prefixes=self._namespace_prefix)
         return self._triples
 
     @property
@@ -69,7 +72,7 @@ class KIPattern:
 
     @property
     def sparql_ask(self):
-        return get_ask(self.graph_pattern)
+        return get_ask(self.graph_pattern, prefixes=self._prefixes)
 
     def set_new_triples(self, ki_id: str, new_triples: Tuple, mapping: Dict[Node, Node], new_mapping: Dict[Node, Node]):
         # noinspection PyTypeChecker
@@ -135,7 +138,7 @@ class SemanticExt:
                     = KIPattern(kb_id=self.kb_id,
                                 ki_name=ki.knowledge_interaction_name,
                                 interaction_type=ki.knowledge_interaction_type,
-                                graph_pattern=ki.graph_pattern, ki_id=ki_id)
+                                graph_pattern=ki.graph_pattern, ki_id=ki_id, prefixes=ki.prefixes)
             return self.ki_patterns[ki.knowledge_interaction_name]
 
         def set_item(self, ki: SCKnowledgeInteractionBase) -> KIPattern:

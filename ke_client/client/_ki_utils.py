@@ -47,12 +47,12 @@ def try_validate_gp(gp: GraphPattern):
     if ke_settings.validate_graph_patterns:
         from ke_client.validation import get_validator
         from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern
-        pattern_triples = parse_turtle_pattern(gp.pattern_value, prefixes=ke_settings.get_prefix_namespace())
+        pattern_triples = parse_turtle_pattern(gp.pattern_value, prefixes=gp.prefix_namespace)
         pattern_errors = get_validator().validate_pattern(pattern_triples=pattern_triples)
         result_pattern_errors = None
         if gp.result_pattern_value is not None:
             result_pattern_triples = parse_turtle_pattern(gp.result_pattern_value,
-                                                          prefixes= ke_settings.get_prefix_namespace())
+                                                          prefixes= gp.prefix_namespace)
             result_pattern_errors = get_validator().validate_pattern(pattern_triples=result_pattern_triples)
         if pattern_errors or result_pattern_errors:
             raise PatternError(message=f"Invalid patterns for {gp.name}",

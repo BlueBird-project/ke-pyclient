@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from typing import Optional, Union, Callable, List, Dict, Any
 
 from pydantic import BaseModel, Field, ConfigDict
+from rdflib import Namespace
+from rdflib.namespace import DefinedNamespace
 
 from ke_client.utils import time_utils
 from ke_client.utils.enum_utils import BaseEnum, EnumItem
@@ -32,6 +34,21 @@ class GraphPattern(BaseModel):
     @property
     def prefixes_safe(self) -> Dict:
         return self.prefixes if self.prefixes is not None else {}
+
+    @property
+    def prefix_namespace(self) -> Dict[str, Union[Namespace,DefinedNamespace]]:
+        from rdflib import RDF, RDFS, XSD, OWL
+        namespace_dict = {
+            "rdf": RDF,
+            "rdfs": RDFS,
+            "xsd": XSD,
+            "owl": OWL,
+            # "saref": Namespace("https://saref.etsi.org/core/"),
+            # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
+            # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
+        }
+        namespace_dict.update({k: Namespace(v) for k, v in self.prefixes_safe.items()})
+        return namespace_dict
 
     @property
     def pattern_value(self) -> str:

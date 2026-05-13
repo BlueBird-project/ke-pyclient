@@ -85,21 +85,21 @@ class KESettings(DictBaseSettings):
     def has_extend_graph_patterns_mode(self, extend_graph_patterns_mode: int) -> bool:
         return True if int(self.extend_graph_patterns_mode, 2) | extend_graph_patterns_mode else False
 
-    def get_prefix_namespace(self):
-        from rdflib import RDF, RDFS, XSD, OWL
-        from rdflib import Namespace
-        default_prefixes = {
-            "rdf": RDF,
-            "rdfs": RDFS,
-            "xsd": XSD,
-            "owl": OWL,
-            # "saref": Namespace("https://saref.etsi.org/core/"),
-            # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
-            # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
-        }
-        if self.ontology_prefixes:
-            default_prefixes.update({k: Namespace(v) for k, v in self.ontology_prefixes.items()})
-        return default_prefixes
+    # def get_prefix_namespace(self):
+    #     from rdflib import RDF, RDFS, XSD, OWL
+    #     from rdflib import Namespace
+    #     default_prefixes = {
+    #         "rdf": RDF,
+    #         "rdfs": RDFS,
+    #         "xsd": XSD,
+    #         "owl": OWL,
+    #         # "saref": Namespace("https://saref.etsi.org/core/"),
+    #         # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
+    #         # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
+    #     }
+    #     if self.ontology_prefixes:
+    #         default_prefixes.update({k: Namespace(v) for k, v in self.ontology_prefixes.items()})
+    #     return default_prefixes
 
 
 class KnowledgeInteractionConfig(BaseSettings, extra=Extra.allow):

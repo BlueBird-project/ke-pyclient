@@ -123,7 +123,7 @@ class SimpleValidator(GraphValidator):
             ontology_path = ke_settings.validation_ontology_path
             if ontology_path is None:
                 raise ValueError("'validation_ontology_path' is not defined")
-            turtle_files = [os.path.join(ontology_path,fn) for fn in os.listdir(ontology_path) if fn.endswith(".ttl")]
+            turtle_files = [os.path.join(ontology_path, fn) for fn in os.listdir(ontology_path) if fn.endswith(".ttl")]
 
         ontology_graph = Graph()
         for ttl_file_path in turtle_files:
@@ -172,7 +172,7 @@ class SimpleValidator(GraphValidator):
 
     # endregion
 
-    def _assert_node_type(self, node_type: URIRef, expected_type: Union[List, URIRef, BNode]):
+    def _assert_node_type(self, node_type: URIRef, expected_type: Union[List, URIRef, BNode] ):
         if type(expected_type) is list:
             if node_type in expected_type:
                 return True
@@ -210,7 +210,7 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             # predicate existence
             # --------------------------------------------------
-            if p not in self.known_properties :
+            if p not in self.known_properties:
                 errors.append(f"Unknown predicate: {p}")
                 continue
             # --------------------------------------------------
@@ -242,6 +242,8 @@ class SimpleValidator(GraphValidator):
                 if is_variable(s):
                     subject_types = variable_types.get(s, set())
                     if subject_types:
+                        # todo:
+
                         valid = any(self._assert_node_type(node_type=subject_type, expected_type=expected_domain)
                                     for subject_type in subject_types)
                         if not valid:

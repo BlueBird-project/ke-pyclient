@@ -38,7 +38,14 @@ class PatternError(KIBaseError, Exception):
                  *args, ctx: str, **kwargs):
         super().__init__(message, *args, ctx=ctx, **kwargs)
         self.pattern_error = pattern_error
-        self.result_pattern_error = pattern_error
+        self.result_pattern_error = result_pattern_error
+#         TODO: merge message with pattern erros
+
+
+
+
+
+
 # class KIException(KIBaseError, Exception):
 #     def __init__(self, message: str, *args, ctx: Optional[str] = None):
 #         super().__init__(message, *args, ctx=ctx)
