@@ -361,6 +361,6 @@ def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
         # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
     }
     if default_prefixes is not None:
-        namespace_dict.update({k: Namespace(v) for k, v in default_prefixes})
+        namespace_dict.update({k: Namespace(v) for k, v in default_prefixes.items()})
     namespace_dict.update({k: Namespace(v) for k, v in prefixes.items()})
     return namespace_dict
