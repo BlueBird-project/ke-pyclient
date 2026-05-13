@@ -17,6 +17,8 @@ import ke_client.ke_vars as ke_vars
 
 
 class KEClientBase(BaseModel):
+
+    prefixes: dict
     # region private fields
     _logger_: Logger = None
     # dictionary of the knowledge interactions used in the local service (

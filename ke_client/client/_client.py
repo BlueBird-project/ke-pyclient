@@ -31,7 +31,6 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
     kb_description: Optional[str] = None
     # TODO: validate reasoner_level can be equal only to 1,2,3,4
     reasoner_level: int = 1
-    prefixes: dict
     # client loop
     _handler_loop_thread_: Optional[threading.Thread] = None
     # stop event for the client loop
@@ -152,6 +151,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         #         accu += filtered_bindings_set
         #     return post_response
         return post_response
+
 
     # endregion
 

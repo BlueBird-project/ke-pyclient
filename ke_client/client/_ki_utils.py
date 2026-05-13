@@ -51,8 +51,7 @@ def try_validate_gp(gp: GraphPattern):
         pattern_errors = get_validator().validate_pattern(pattern_triples=pattern_triples)
         result_pattern_errors = None
         if gp.result_pattern_value is not None:
-            result_pattern_triples = parse_turtle_pattern(gp.result_pattern_value,
-                                                          prefixes= gp.prefix_namespace)
+            result_pattern_triples = parse_turtle_pattern(gp.result_pattern_value, prefixes=gp.prefix_namespace)
             result_pattern_errors = get_validator().validate_pattern(pattern_triples=result_pattern_triples)
         if pattern_errors or result_pattern_errors:
             raise PatternError(message=f"Invalid patterns for {gp.name}",

@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Optional, Union, Callable, List, Dict, Any
+from typing import Optional, Union, Callable, List, Dict, Any, Type
 
 from pydantic import BaseModel, Field, ConfigDict
 from rdflib import Namespace
@@ -21,6 +21,7 @@ class GraphPattern(BaseModel):
     pattern: List[str]
     result_pattern: Optional[List[str]] = None
     required_bindings: Optional[List[str]] = None
+    _default_prefixes: Optional[dict] = None
 
     #
     def __init__(self, **kwargs):
@@ -36,19 +37,19 @@ class GraphPattern(BaseModel):
         return self.prefixes if self.prefixes is not None else {}
 
     @property
-    def prefix_namespace(self) -> Dict[str, Union[Namespace,DefinedNamespace]]:
-        from rdflib import RDF, RDFS, XSD, OWL
-        namespace_dict = {
-            "rdf": RDF,
-            "rdfs": RDFS,
-            "xsd": XSD,
-            "owl": OWL,
-            # "saref": Namespace("https://saref.etsi.org/core/"),
-            # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
-            # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
-        }
-        namespace_dict.update({k: Namespace(v) for k, v in self.prefixes_safe.items()})
-        return namespace_dict
+    def all_prefixes(self) -> Dict:
+        default_prefixes = self.default_prefixes if self.default_prefixes is not None else {}
+        return {**default_prefixes, **self.prefixes_safe}
+
+    # get_prefix_namespace
+    @property
+    def prefix_namespace(self) \
+            -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
+        from ke_client.gp_ext._semantic_utils import init_prefix_namespace
+        return init_prefix_namespace(prefixes=self.prefixes_safe, default_prefixes=self._default_prefixes)
+
+    def set_default_prefix(self, default_prefixes: Dict):
+        self._default_prefixes = default_prefixes
 
     @property
     def pattern_value(self) -> str:
@@ -103,13 +104,13 @@ class GraphPattern(BaseModel):
             return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
                                               knowledge_interaction_name=self.ki_name(ki_type=ki_type),
                                               graph_pattern=self.pattern_value,
-                                              prefixes=self.prefixes_safe)
+                                              prefixes=self.all_prefixes)
         elif ki_type in [KnowledgeInteractionType.POST, KnowledgeInteractionType.REACT]:
             return SCKnowledgeInteractionBase(knowledge_interaction_type=ki_type,
                                               knowledge_interaction_name=self.ki_name(ki_type=ki_type),
                                               argument_graph_pattern=self.pattern_value,
                                               result_graph_pattern=self.result_pattern_value,
-                                              prefixes=self.prefixes_safe)
+                                              prefixes=self.all_prefixes)
         else:
             raise ValueError(f"{self.name}: Invalid ki_type:{ki_type} ")
 

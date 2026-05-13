@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List, Tuple, Dict, Any, Optional, Union, Callable
+from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type
 
 from rdflib.namespace import DefinedNamespace
 from rdflib import Graph, Node, Namespace, RDF, RDFS, XSD, OWL
@@ -18,7 +18,7 @@ class KIPattern:
     graph_pattern: str
     interaction_type: str
     _ki_id: Optional[str] = None
-    _namespace_prefix: Dict[str, Union[Namespace, DefinedNamespace]]
+    _namespace_prefix: Dict[str, Union[Namespace, Type[DefinedNamespace]]]
     _prefixes: Dict[str, str]
     _triples: List[Tuple[Node, Node, Node]] = None
     _processed_pattern: Graph = None
@@ -39,18 +39,7 @@ class KIPattern:
         self.graph_pattern = graph_pattern
         self._ki_id = ki_id
         self._prefixes = prefixes
-        namespace_prefix = {
-            "rdf": RDF,
-            "rdfs": RDFS,
-            "xsd": XSD,
-            "owl": OWL,
-            # "saref": Namespace("https://saref.etsi.org/core/"),
-            # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
-            # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
-        }
-        namespace_prefix.update({k: Namespace(v) for k, v in prefixes.items()})
-
-        self._namespace_prefix = namespace_prefix
+        self._namespace_prefix = init_prefix_namespace(prefixes=prefixes, default_prefixes=None)
 
     @property
     def triples(self) -> List[Tuple[Node, Node, Node]]:
@@ -357,3 +346,21 @@ class SemanticExt:
             return ki_pattern
         else:
             return None
+
+
+def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
+        -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
+    from rdflib import RDF, RDFS, XSD, OWL
+    namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {
+        "rdf": RDF,
+        "rdfs": RDFS,
+        "xsd": XSD,
+        "owl": OWL,
+        # "saref": Namespace("https://saref.etsi.org/core/"),
+        # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
+        # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
+    }
+    if default_prefixes is not None:
+        namespace_dict.update({k: Namespace(v) for k, v in default_prefixes})
+    namespace_dict.update({k: Namespace(v) for k, v in prefixes.items()})
+    return namespace_dict
