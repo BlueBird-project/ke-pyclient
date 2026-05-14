@@ -38,7 +38,7 @@ class GraphPattern(BaseModel):
 
     @property
     def all_prefixes(self) -> Dict:
-        default_prefixes = self.default_prefixes if self.default_prefixes is not None else {}
+        default_prefixes = self._default_prefixes if self._default_prefixes is not None else {}
         return {**default_prefixes, **self.prefixes_safe}
 
     # get_prefix_namespace
