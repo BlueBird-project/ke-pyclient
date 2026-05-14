@@ -39,12 +39,19 @@ class PatternError(KIBaseError, Exception):
         super().__init__(message, *args, ctx=ctx, **kwargs)
         self.pattern_error = pattern_error
         self.result_pattern_error = result_pattern_error
-#         TODO: merge message with pattern erros
 
+    #         TODO: merge message with pattern errors
+    def __str__(self):
+        if self.result_pattern_error:
+            result_pattern_error = "\nResult Pattern Errors: " + "\n\t-".join(self.result_pattern_error)
+        else:
+            result_pattern_error = ""
 
-
-
-
+        if self.pattern_error:
+            pattern_error = "\nResult Pattern Errors: " + "\n\t-".join(self.pattern_error)
+        else:
+            pattern_error = ""
+        return f"{super().__str__()}: {pattern_error} {result_pattern_error} "
 
 # class KIException(KIBaseError, Exception):
 #     def __init__(self, message: str, *args, ctx: Optional[str] = None):

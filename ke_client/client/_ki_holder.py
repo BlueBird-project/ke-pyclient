@@ -107,6 +107,7 @@ class KIHolder:
     def _set_ki_(self, gp_name: str, handler, ki_type: Union[str, EnumItem], call_ctx: str) -> KnowledgeInteraction:
         from ke_client.client._ki_utils import require_graph_pattern, try_validate_gp
         gp = require_graph_pattern(gp_name)
+
         try_validate_gp(gp=gp )
 
         def measured_handler(kb_id: str, bindings: Optional[List[Dict[str, Any]]]):
