@@ -30,28 +30,28 @@ class KIError(KIBaseError, Exception):
 
 
 class PatternError(KIBaseError, Exception):
-    pattern_error: Optional[List[str]] = None
-    result_pattern_error: Optional[List[str]] = None
+    pattern_errors: Optional[List[str]] = None
+    result_pattern_errors: Optional[List[str]] = None
 
-    def __init__(self, message: str, pattern_error: Optional[List[str]] = None,
-                 result_pattern_error=None,
+    def __init__(self, message: str, pattern_errors: Optional[List[str]] = None,
+                 result_pattern_errors=None,
                  *args, ctx: str, **kwargs):
         super().__init__(message, *args, ctx=ctx, **kwargs)
-        self.pattern_error = pattern_error
-        self.result_pattern_error = result_pattern_error
+        self.pattern_errors = pattern_errors
+        self.result_pattern_errors = result_pattern_errors
 
     #         TODO: merge message with pattern errors
     def __str__(self):
-        if self.result_pattern_error:
-            result_pattern_error = "\nResult Pattern Errors: " + "\n\t-".join(self.result_pattern_error)
+        if self.result_pattern_errors:
+            result_pattern_errors = "\nResult Pattern Errors: " + "\n\t-".join(self.result_pattern_errors)
         else:
-            result_pattern_error = ""
+            result_pattern_errors = ""
 
-        if self.pattern_error:
-            pattern_error = "\nResult Pattern Errors: " + "\n\t-".join(self.pattern_error)
+        if self.pattern_errors:
+            pattern_errors = "\nResult Pattern Errors: " + "\n\t-".join(self.pattern_errors)
         else:
-            pattern_error = ""
-        return f"{super().__str__()}: {pattern_error} {result_pattern_error} "
+            pattern_errors = ""
+        return f"{super().__str__()}: {pattern_errors} {result_pattern_errors} "
 
 # class KIException(KIBaseError, Exception):
 #     def __init__(self, message: str, *args, ctx: Optional[str] = None):
