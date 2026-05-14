@@ -3,11 +3,11 @@ import time
 from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type
 
 from rdflib.namespace import DefinedNamespace
-from rdflib import Graph, Node, Namespace, RDF, RDFS, XSD, OWL
+from rdflib import Graph, Node, Namespace
 
 from ke_client.gp_ext._model import GraphPatternExtMode
 from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern, process_pattern, get_ask, matches_pattern, \
-    extract_new_triples, is_subgraph_pattern, triple_subgraph_check
+    extract_new_triples, triple_subgraph_check
 from ke_client.ki_model import SCKnowledgeInteraction, KnowledgeInteractionType, SCKnowledgeInteractionBase, \
     GraphPattern, SmartClient, KnowledgeInteraction
 
@@ -350,12 +350,13 @@ class SemanticExt:
 
 def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
         -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
-    from rdflib import RDF, RDFS, XSD, OWL
+    from rdflib import RDF, RDFS, XSD, OWL, DCTERMS
     namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {
         "rdf": RDF,
         "rdfs": RDFS,
         "xsd": XSD,
         "owl": OWL,
+        "dcterms": DCTERMS
         # "saref": Namespace("https://saref.etsi.org/core/"),
         # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
         # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
