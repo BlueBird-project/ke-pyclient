@@ -20,6 +20,27 @@ def _build_variable_types(pattern):
     return var_types
 
 
+def get_all_types(graph_node: str, variable_types: Dict[str, Set]):
+    processed_nodes: Set = set()
+    all_types: Set = set()
+
+    def traverse_all_types(nodes: List[str]):
+        if len(nodes) == 0:
+            return
+        node = nodes.pop()
+        for t in variable_types.get(node, ()):
+            if is_variable(t):
+                if t not in processed_nodes:
+                    nodes.append(t)
+            else:
+                all_types.add(t)
+        processed_nodes.add(node)
+        traverse_all_types(nodes=nodes)
+
+    traverse_all_types(nodes=[graph_node])
+    return all_types
+
+
 # endregion
 
 # region init standard graph predicates/resources
@@ -172,7 +193,7 @@ class SimpleValidator(GraphValidator):
 
     # endregion
 
-    def _assert_node_type(self, node_type: URIRef, expected_type: Union[List, URIRef, BNode] ):
+    def _assert_node_type(self, node_type: URIRef, expected_type: Union[List, URIRef, BNode]):
         if type(expected_type) is list:
             if node_type in expected_type:
                 return True
@@ -240,7 +261,8 @@ class SimpleValidator(GraphValidator):
             expected_domain = self.property_domains.get(p)
             if expected_domain:
                 if is_variable(s):
-                    subject_types = variable_types.get(s, set())
+                    subject_types = get_all_types(graph_node=s, variable_types=variable_types)
+                    # subject_types =   variable_types.get(s, set())
                     if subject_types:
                         # todo:
 
@@ -262,7 +284,7 @@ class SimpleValidator(GraphValidator):
                         errors.append(f"Range violation {p}: {o} must be {expected_domain}, got: {actual_type}")
                 elif is_variable(o):
                     # variable object
-                    object_types = variable_types.get(o, set())
+                    object_types = get_all_types(graph_node=o, variable_types=variable_types)
                     if object_types:
                         valid = any(self._assert_node_type(node_type=object_type, expected_type=expected_range)
                                     for object_type in object_types)
