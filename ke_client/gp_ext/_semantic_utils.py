@@ -385,5 +385,4 @@ def is_uri_default(uri: URIRef) -> bool:
             node_name = str(uri)[len(ns_str):]
             if node_name in ns and uri == DCTERMS[node_name]:
                 return True
-        else:
-            return False
+    return False
