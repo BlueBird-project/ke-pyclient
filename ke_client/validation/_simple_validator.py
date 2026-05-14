@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List, Dict, Set, Union, Optional
 
@@ -218,6 +219,7 @@ class SimpleValidator(GraphValidator):
         return False
 
     def validate_pattern(self, pattern_triples: List):
+        from ke_client import ke_settings
         errors = []
         variable_types = _build_variable_types(pattern_triples)
 
@@ -269,8 +271,10 @@ class SimpleValidator(GraphValidator):
 
                         valid = any(self._assert_node_type(node_type=subject_type, expected_type=expected_domain)
                                     for subject_type in subject_types)
-                        if not valid:
-                            errors.append(f"Domain violation {p}: {s} must be {expected_domain} ")
+                        if not valid and not ke_settings.nodes_unspecified_types:
+                            errors.append(f"Domain violation {p}: {s} must be: {expected_domain} ")
+                        elif not valid:
+                            logging.warning(f"Domain violation {p}: {s} must be: {expected_domain} ")
 
             # --------------------------------------------------
             # range validation
@@ -289,8 +293,10 @@ class SimpleValidator(GraphValidator):
                     if object_types:
                         valid = any(self._assert_node_type(node_type=object_type, expected_type=expected_range)
                                     for object_type in object_types)
-                        if not valid:
+                        if not valid and not ke_settings.nodes_unspecified_types:
                             errors.append(f"Range violation {p}: {o} must be {expected_range} ")
+                        elif not valid:
+                            logging.warning(f"Range violation {p}: {o} must be {expected_range} ")
                 elif isinstance(o, URIRef):
                     # URI object
                     pass

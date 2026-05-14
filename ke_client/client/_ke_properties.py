@@ -36,6 +36,11 @@ class KESettings(DictBaseSettings):
                                                       "loaded located in  `ontology_path` ")
     extend_graph_patterns: bool = Field(default=False,
                                         description="Extend ANSWER KI graph patterns to other ASK KI   ")
+    nodes_unspecified_types: bool = Field(default=False,
+                                          description="True - ignore missing types in for variables in triples with"
+                                                      " domain or range constraints. "
+                                                      "Allow variables' types to be not be given explicitly. "
+                                                      "The predicate implicitly defines the type. ")
     extend_graph_patterns_mode: str = Field(default="0",
                                             description="0b0000 - "
                                                         "0b0001 - simple triple match, "
