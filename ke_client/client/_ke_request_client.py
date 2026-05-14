@@ -22,7 +22,7 @@ class KERequestClient:
         pass
 
     @abstractmethod
-    def default_prefixes(self,  ) -> KIPostResponse:
+    def default_prefixes(self) -> KIPostResponse:
         """
         POST knowledge interactions - post bindings for defined graph pattern
         """

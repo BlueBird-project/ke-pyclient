@@ -1,7 +1,9 @@
+from typing import Optional
+
 from ._gp_validator import GraphValidator
 from ._simple_validator import SimpleValidator
 
-_gp_validator_instance: GraphValidator =None
+_gp_validator_instance: Optional[GraphValidator] = None
 
 
 def get_validator() -> GraphValidator:

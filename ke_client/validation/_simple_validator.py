@@ -7,6 +7,7 @@ from rdflib.namespace import XSD
 from collections import defaultdict
 
 from ke_client.validation._gp_validator import GraphValidator, infer_literal_datatype, is_variable
+from ke_client.gp_ext import is_uri_default
 
 
 # region utils
@@ -231,7 +232,7 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             # predicate existence
             # --------------------------------------------------
-            if p not in self.known_properties:
+            if p not in self.known_properties and not is_uri_default(uri=p):
                 errors.append(f"Unknown predicate: {p}")
                 continue
             # --------------------------------------------------

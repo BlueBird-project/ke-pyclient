@@ -1,7 +1,7 @@
 import logging
 import time
 from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type
-
+from rdflib import RDF, RDFS, XSD, OWL, DCTERMS, URIRef
 from rdflib.namespace import DefinedNamespace
 from rdflib import Graph, Node, Namespace
 
@@ -348,15 +348,19 @@ class SemanticExt:
             return None
 
 
+_default_namespaces = {
+    "rdf": RDF,
+    "rdfs": RDFS,
+    "xsd": XSD,
+    "owl": OWL,
+    "dcterms": DCTERMS
+}
+
+
 def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
         -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
-    from rdflib import RDF, RDFS, XSD, OWL, DCTERMS
     namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {
-        "rdf": RDF,
-        "rdfs": RDFS,
-        "xsd": XSD,
-        "owl": OWL,
-        "dcterms": DCTERMS
+        **_default_namespaces
         # "saref": Namespace("https://saref.etsi.org/core/"),
         # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
         # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
@@ -365,3 +369,21 @@ def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
         namespace_dict.update({k: Namespace(v) for k, v in default_prefixes.items()})
     namespace_dict.update({k: Namespace(v) for k, v in prefixes.items()})
     return namespace_dict
+
+
+def is_str_uri_default(uri: str) -> bool:
+    return is_uri_default(uri=URIRef(uri))
+
+
+def is_uri_default(uri: URIRef) -> bool:
+    global _default_namespaces
+    for ns_key, ns in _default_namespaces.items():
+
+        ns_str = str(ns)
+
+        if str(uri).startswith(ns_str):
+            node_name = str(uri)[len(ns_str):]
+            if node_name in ns and uri == DCTERMS[node_name]:
+                return True
+        else:
+            return False

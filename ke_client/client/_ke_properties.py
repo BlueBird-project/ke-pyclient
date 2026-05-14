@@ -25,9 +25,9 @@ class KESettings(DictBaseSettings):
     reasoner_level: int = Field(default=1)
     allow_partial_ki: bool = Field(default=False)
     ki_vars: Optional[dict[str, Any]] = Field(default=None)
-    ontology_prefixes: Optional[dict[str, Any]] = Field(default=None)
+    # ontology_prefixes: Optional[dict[str, Any]] = Field(default=None)
 
-    validation_ontology_path: Optional[str] = Field(default=None, description="location of turtle ontology files")
+    validation_ontology_path: Optional[str] = Field(default=None, description="Location of turtle ontology files")
     extension_ontology_files: List[str] = Field(default_factory=lambda: ["ontologies/bluebird.ttl"],
                                                 description="Turtle ontology files used in the graph "
                                                             "extension process  of turtle ontology files")

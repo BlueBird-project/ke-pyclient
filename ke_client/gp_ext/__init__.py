@@ -1,6 +1,8 @@
-from ._semantic_utils import KIPattern, SemanticExt
+from typing import Optional
 
-_gp_extender: SemanticExt = None
+from ._semantic_utils import KIPattern, SemanticExt, is_uri_default
+
+_gp_extender: Optional[SemanticExt] = None
 
 
 def get_gp_extender() -> SemanticExt:
