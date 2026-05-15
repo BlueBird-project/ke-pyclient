@@ -1,7 +1,7 @@
 import logging
 import time
 from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type, Iterable
-from rdflib import RDF, RDFS, XSD, OWL, DCTERMS, URIRef
+from rdflib import RDF, RDFS, XSD, OWL, DCTERMS, TIME, URIRef
 from rdflib.namespace import DefinedNamespace
 from rdflib import Graph, Node, Namespace
 
@@ -357,7 +357,8 @@ _default_namespaces = {
     "rdfs": RDFS,
     "xsd": XSD,
     "owl": OWL,
-    "dcterms": DCTERMS
+    "dcterms": DCTERMS,
+    "time": TIME
 }
 
 
