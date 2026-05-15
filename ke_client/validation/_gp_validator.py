@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Union, Iterable, Type
 
 from rdflib import Graph, Literal, Variable
-from rdflib.namespace import XSD
+from rdflib.namespace import XSD, Namespace, DefinedNamespace
 
 
 # region utils
@@ -39,5 +39,5 @@ class GraphValidator:
         self.ontology_graph = ontology_graph
 
     @abstractmethod
-    def validate_pattern(self, pattern_triples: List):
+    def validate_pattern(self, pattern_triples: List, namespaces: Iterable[Union[Namespace, Type[DefinedNamespace]]]):
         pass

@@ -234,7 +234,7 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             # predicate existence
             # --------------------------------------------------
-            if p not in self.known_properties and not is_uri_default(uri=p):
+            if p not in self.known_properties and not is_uri_default(uri=p, namespaces=namespaces):
                 errors.append(f"Unknown predicate: {p}")
                 continue
             # --------------------------------------------------
@@ -242,13 +242,21 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             if isinstance(s, URIRef):
                 if s not in self.known_resources:
-                    errors.append(f"Unknown subject: {s}")
-            # --------------------------------------------------
+                    if is_uri_default(uri=s, namespaces=namespaces):
+                        # TODO: warning?
+                        pass
+                    else:
+                        errors.append(f"Unknown subject: {s}")
+                        # --------------------------------------------------
             # object URI existence
             # --------------------------------------------------
             if isinstance(o, URIRef):
                 if o not in self.known_resources:
-                    errors.append(f"Unknown object: {o}")
+                    if is_uri_default(uri=p, namespaces=namespaces):
+                        # TODO: warning?
+                        pass
+                    else:
+                        errors.append(f"Unknown object: {o}")
             # --------------------------------------------------
             # property kind consistency
             # --------------------------------------------------
