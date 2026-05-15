@@ -362,8 +362,6 @@ _default_namespaces = {
 
 
 class DynamicNamespace(Namespace):
-    def __init__(self, ns_value: Union[str, bytes]):
-        super().__init__(ns_value)
 
     def __contains__(self, ref: str) -> bool:
         if ref.startswith(self):
