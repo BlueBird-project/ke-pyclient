@@ -252,7 +252,7 @@ class SimpleValidator(GraphValidator):
             # --------------------------------------------------
             if isinstance(o, URIRef):
                 if o not in self.known_resources:
-                    if is_uri_default(uri=p, namespaces=namespaces):
+                    if is_uri_default(uri=o, namespaces=namespaces):
                         # TODO: warning?
                         pass
                     else:
