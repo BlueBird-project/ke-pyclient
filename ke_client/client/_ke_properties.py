@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
@@ -54,6 +54,10 @@ class KESettings(DictBaseSettings):
         super().__init__(*args, _env_file=ke_vars.ENV_FILE, **kwargs)
         if self.knowledge_base_id is not None:
             self.knowledge_base_id = validate_kb_id(self.knowledge_base_id)
+
+    @property
+    def kb_prefix(self) -> Tuple[str, str]:
+        return "_kb", self.knowledge_base_id
 
     def get_ki_vars(self) -> Dict[str, Any]:
         ki_vars: dict

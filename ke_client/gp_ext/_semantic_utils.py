@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type
+from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type, Iterable
 from rdflib import RDF, RDFS, XSD, OWL, DCTERMS, URIRef
 from rdflib.namespace import DefinedNamespace
 from rdflib import Graph, Node, Namespace
@@ -33,13 +33,17 @@ class KIPattern:
 
     def __init__(self, kb_id: str, ki_name: str, interaction_type: str, graph_pattern: str, prefixes: Dict,
                  ki_id: Optional[str] = None):
+        from ke_client import ke_settings
+        kb_prefix, kb_uri = ke_settings.kb_prefix
         self.kb_id = kb_id
         self.ki_name = ki_name
         self.interaction_type = interaction_type
         self.graph_pattern = graph_pattern
         self._ki_id = ki_id
         self._prefixes = prefixes
-        self._namespace_prefix = init_prefix_namespace(prefixes=prefixes, default_prefixes=None)
+        # TODO: check if kb_id is a valid uri
+        self._namespace_prefix = init_prefix_namespace(prefixes=prefixes, default_prefixes=None,
+                                                       dynamic_prefixes={kb_prefix: kb_uri})
 
     @property
     def triples(self) -> List[Tuple[Node, Node, Node]]:
@@ -357,7 +361,17 @@ _default_namespaces = {
 }
 
 
-def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
+class DynamicNamespace(Namespace):
+    def __init__(self, ns_value: Union[str, bytes]):
+        super().__init__(ns_value)
+
+    def __contains__(self, ref: str) -> bool:
+        if ref.startswith(self):
+            return True
+        return self[ref].startswith(self)
+
+
+def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict], dynamic_prefixes: Optional[Dict]) \
         -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
     namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {
         **_default_namespaces
@@ -367,22 +381,26 @@ def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict]) \
     }
     if default_prefixes is not None:
         namespace_dict.update({k: Namespace(v) for k, v in default_prefixes.items()})
+    if dynamic_prefixes is not None:
+        namespace_dict.update({k: DynamicNamespace(v) for k, v in dynamic_prefixes.items()})
     namespace_dict.update({k: Namespace(v) for k, v in prefixes.items()})
     return namespace_dict
 
 
-def is_str_uri_default(uri: str) -> bool:
-    return is_uri_default(uri=URIRef(uri))
+def is_str_uri_default(uri: str, namespaces: Iterable[Union[Namespace, Type[DefinedNamespace]]]) -> bool:
+    return is_uri_default(uri=URIRef(uri), namespaces=namespaces)
 
 
-def is_uri_default(uri: URIRef) -> bool:
+def is_uri_default(uri: URIRef, namespaces: Iterable[Union[Namespace, Type[DefinedNamespace]]]) -> bool:
     global _default_namespaces
-    for ns_key, ns in _default_namespaces.items():
+    if namespaces is None:
+        namespaces = _default_namespaces.values()
+    for ns in namespaces:
 
         ns_str = str(ns)
 
         if str(uri).startswith(ns_str):
             node_name = str(uri)[len(ns_str):]
-            if node_name in ns and uri == DCTERMS[node_name]:
+            if node_name in ns and uri == ns[node_name]:
                 return True
     return False

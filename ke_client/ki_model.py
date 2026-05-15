@@ -22,6 +22,7 @@ class GraphPattern(BaseModel):
     result_pattern: Optional[List[str]] = None
     required_bindings: Optional[List[str]] = None
     _default_prefixes: Optional[dict] = None
+    _dynamic_prefixes: Optional[dict] = None
 
     #
     def __init__(self, **kwargs):
@@ -46,9 +47,13 @@ class GraphPattern(BaseModel):
     def prefix_namespace(self) \
             -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
         from ke_client.gp_ext._semantic_utils import init_prefix_namespace
-        return init_prefix_namespace(prefixes=self.prefixes_safe, default_prefixes=self._default_prefixes)
+        from ke_client import ke_settings
+        kb_prefix, kb_uri = ke_settings.kb_prefix
+        return init_prefix_namespace(prefixes=self.prefixes_safe, default_prefixes=self._default_prefixes,
+                                     dynamic_prefixes={kb_prefix: kb_uri})
 
     def set_default_prefix(self, default_prefixes: Dict):
+
         self._default_prefixes = default_prefixes
 
     @property
