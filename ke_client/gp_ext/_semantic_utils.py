@@ -371,17 +371,17 @@ class DynamicNamespace(Namespace):
 
 def init_prefix_namespace(prefixes: Dict, default_prefixes: Optional[Dict], dynamic_prefixes: Optional[Dict]) \
         -> Dict[str, Union[Namespace, Type[DefinedNamespace]]]:
-    namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {
-        **_default_namespaces
-        # "saref": Namespace("https://saref.etsi.org/core/"),
-        # "foaf": Namespace("http://xmlns.com/foaf/0.1/"),
-        # "ubmarket": Namespace("https://ubflex.bluebird.eu/market/"),
-    }
+    namespace_dict: Dict[str, Union[Namespace, Type[DefinedNamespace]]] = {}
     if default_prefixes is not None:
         namespace_dict.update({k: Namespace(v) for k, v in default_prefixes.items()})
     if dynamic_prefixes is not None:
         namespace_dict.update({k: DynamicNamespace(v) for k, v in dynamic_prefixes.items()})
     namespace_dict.update({k: Namespace(v) for k, v in prefixes.items()})
+    for k, v in _default_namespaces.values():
+        if k in namespace_dict and str(v) != str(namespace_dict[k]):
+            logging.error(f"Invalid namespace uri: {k}={namespace_dict[k]}")
+    namespace_dict.update(_default_namespaces)
+
     return namespace_dict
 
 
