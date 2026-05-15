@@ -1,10 +1,10 @@
 import logging
 import os
-from typing import List, Dict, Set, Union, Optional
+from typing import List, Dict, Set, Union, Optional, Iterable, Type
 
 from rdflib import Graph, RDF, RDFS, OWL, URIRef, Literal, Variable, BNode
 from rdflib.collection import Collection
-from rdflib.namespace import XSD
+from rdflib.namespace import XSD, Namespace, DefinedNamespace
 from collections import defaultdict
 
 from ke_client.validation._gp_validator import GraphValidator, infer_literal_datatype, is_variable
@@ -218,7 +218,7 @@ class SimpleValidator(GraphValidator):
                 stack.append(superclass)
         return False
 
-    def validate_pattern(self, pattern_triples: List):
+    def validate_pattern(self, pattern_triples: List, namespaces: Iterable[Union[Namespace, Type[DefinedNamespace]]]):
         from ke_client import ke_settings
         errors = []
         variable_types = _build_variable_types(pattern_triples)
