@@ -57,7 +57,7 @@ class KESettings(DictBaseSettings):
 
     @property
     def kb_prefix(self) -> Tuple[str, str]:
-        return "_kb", self.knowledge_base_id
+        return "_kb", f"{self.knowledge_base_id}/"
 
     def get_ki_vars(self) -> Dict[str, Any]:
         ki_vars: dict
