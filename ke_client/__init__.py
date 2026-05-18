@@ -80,6 +80,6 @@ def configure_ki():
         if len(graph_patterns) > 0:
             graph_patterns.update(ki_conf.graph_patterns_safe())
             ki_conf.graph_patterns = graph_patterns
-        for gp in ki_conf.graph_patterns.values():
-            gp.set_default_prefix(default_prefixes=ki_conf.prefixes)
+    for gp in ki_conf.graph_patterns.values():
+        gp.set_default_prefix(default_prefixes=ki_conf.prefixes)
     return ki_conf
