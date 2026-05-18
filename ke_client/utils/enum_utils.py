@@ -76,6 +76,7 @@ class EnumUtils:
 
 T = TypeVar("T")
 
+
 # TODO binary enumvalue
 # E = TypeVar("E", bound="EnumItem")
 class EnumItem(Generic[T]):
@@ -155,6 +156,9 @@ class BaseEnum(Generic[T]):
                 v.__key__ = k
                 if v.__alias__ is not None:
                     cls.__aliases__[v.__alias__] = v
+                elif type(v.value) is str:
+                    cls.__aliases__[v.__alias__] = v.value
+
             else:
                 setattr(cls, k, EnumItem.init_item(k, v))
         setattr(cls, "__names__", fields.keys())
@@ -171,6 +175,7 @@ class BaseEnum(Generic[T]):
         if hasattr(cls, s):
             return getattr(cls, s)
         return None
+
 
     @classmethod
     def parse(cls: Type[T], s: str) -> EnumItem[T]:
