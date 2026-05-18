@@ -97,7 +97,7 @@ class KIHolder:
         if ke_settings.extend_graph_patterns:
             gp_ext = get_gp_extender()
             ki_pattern = gp_ext.set_ki(gp=graph_pattern, ki_type=ki_type)
-            extended_ki = gp_ext.match_ask(ki_name=ki_pattern.ki_name, handler=handler)
+            extended_ki = gp_ext.match_ask(ki_name=ki_pattern.ki_name,graph_pattern=graph_pattern, handler=handler)
             logging.info(f"Extending {ki_pattern.ki_name} with {len(extended_ki)} ki patterns .")
             for ki in extended_ki:
                 if ki.ki_name in self._client_ki:
