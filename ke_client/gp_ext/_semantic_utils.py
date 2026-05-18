@@ -240,6 +240,7 @@ class SemanticExt:
                                                                 ask_triples=other_pattern.triples,
                                                                 ki_pattern=ki_pattern)
                     if extended_pattern is not None:
+                        logging.info(f"Graph pattern TRIPLE_MATCH  {time.time() - start}s")
                         return extended_pattern
                 finally:
                     if (time.time() - start) > 0.05:
@@ -255,6 +256,7 @@ class SemanticExt:
                     extended_pattern: Optional[KIPattern] \
                         = self._extend_variables(other_pattern=other_pattern, ki_pattern=ki_pattern)
                     if extended_pattern is not None:
+                        logging.info(f"Graph pattern SPARQL_MATCH  {time.time() - start}s")
                         return extended_pattern
                 finally:
                     if (time.time() - start) > 0.25:

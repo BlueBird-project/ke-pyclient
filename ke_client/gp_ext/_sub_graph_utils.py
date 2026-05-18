@@ -157,7 +157,7 @@ def process_pattern(pattern_str, prefix_str: Optional = "", extend=False, ontolo
     grounded_str = re.sub(r'\?(\w+)', r'<var:\1>', pattern_str)
 
     # Parse as Turtle to handle the semicolon (;) and Datatypes (^^)
-    g.parse(data=prefix_str + grounded_str, format="turtle")
+    g.parse(data=prefix_str + "\n" + grounded_str, format="turtle")
     if extend:
         if ontology_files is None:
             from ke_client import ke_settings
