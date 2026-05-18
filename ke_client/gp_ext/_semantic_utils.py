@@ -209,7 +209,7 @@ class SemanticExt:
     def match_kb_ask(self, ki_name: str, other_kb_id: str) \
             -> Optional[KIPattern]:
         from ke_client import ke_settings
-        if ke_settings.extend_graph_patterns:
+        if not ke_settings.extend_graph_patterns:
             logging.warning("ke_extend_graph_patterns is disabled ")
             return None
         ki_pattern: KIPattern = self.ki_cache[self.kb_id].ki_patterns[ki_name]
