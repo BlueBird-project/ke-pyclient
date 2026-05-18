@@ -7,6 +7,7 @@ from pydantic_settings import SettingsConfigDict, BaseSettings
 from ke_client.ki_model import GraphPattern
 from ke_client.utils import load_yml_obj, DictBaseSettings, validate_kb_id
 import ke_client.ke_vars as ke_vars
+from ke_client.utils.enum_utils import EnumItem
 
 
 # class KnowledgeInteractionTypeName(BaseEnum):
@@ -91,8 +92,8 @@ class KESettings(DictBaseSettings):
         return cls(dict_settings={})
         # return super().load(yml_path=yml_path, section_name="KE".lower())
 
-    def has_extend_graph_patterns_mode(self, extend_graph_patterns_mode: int) -> bool:
-        return True if int(self.extend_graph_patterns_mode, 2) | extend_graph_patterns_mode else False
+    def has_extend_graph_patterns_mode(self, extend_graph_patterns_mode: EnumItem) -> bool:
+        return True if int(self.extend_graph_patterns_mode, 2) & extend_graph_patterns_mode.value else False
 
     # def get_prefix_namespace(self):
     #     from rdflib import RDF, RDFS, XSD, OWL

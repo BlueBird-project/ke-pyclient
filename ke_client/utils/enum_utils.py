@@ -76,7 +76,7 @@ class EnumUtils:
 
 T = TypeVar("T")
 
-
+# TODO binary enumvalue
 # E = TypeVar("E", bound="EnumItem")
 class EnumItem(Generic[T]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
