@@ -1,9 +1,9 @@
 import logging
 import re
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 from ke_client import rdf_nil
-from rdflib import Graph, Namespace, RDF, OWL, RDFS,XSD
+from rdflib import Graph, Namespace, RDF, OWL, RDFS, XSD
 from rdflib.term import Variable, URIRef, Literal
 
 _DEFAULT_PREFIX_MAP = {
@@ -149,7 +149,7 @@ def extract_new_triples(g_small, g_large, allow_extra_knowledge=False):
     return new_triples, new_triple_map, all_mapping
 
 
-def process_pattern(pattern_str, extend=False, ontology_files: List[str] = None):
+def process_pattern(pattern_str, prefix_str: Optional = "", extend=False, ontology_files: List[str] = None):
     g = Graph()
 
     # Pre-processing: Turtle parser doesn't like naked '?' variables.
@@ -157,7 +157,7 @@ def process_pattern(pattern_str, extend=False, ontology_files: List[str] = None)
     grounded_str = re.sub(r'\?(\w+)', r'<var:\1>', pattern_str)
 
     # Parse as Turtle to handle the semicolon (;) and Datatypes (^^)
-    g.parse(data=grounded_str, format="turtle")
+    g.parse(data=prefix_str + grounded_str, format="turtle")
     if extend:
         if ontology_files is None:
             from ke_client import ke_settings
@@ -173,6 +173,7 @@ def matches_pattern(in_graph, query):
     # query = f"ASK {{ {pattern_str} }}"
     # print(in_graph.query(select_pattern).bindings)
     return bool(in_graph.query(query))
+
 
 # todo
 

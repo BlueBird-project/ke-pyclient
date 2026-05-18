@@ -54,13 +54,15 @@ class KIPattern:
     @property
     def processed_pattern(self):
         if self._processed_pattern is None:
-            self._processed_pattern = process_pattern(self.graph_pattern, extend=False)
+            rdf_prefixes = "\n".join([f"@prefix {p}: <{uri}> ." for p, uri in self._namespace_prefix.items()])
+            self._processed_pattern = process_pattern(self.graph_pattern, prefix_str=rdf_prefixes, extend=False)
         return self._processed_pattern
 
     @property
     def extended_pattern(self):
         if self._extended_pattern is None:
-            self._extended_pattern = process_pattern(self.graph_pattern, extend=True)
+            rdf_prefixes = "\n".join([f"@prefix {p}: <{uri}> ." for p, uri in self._namespace_prefix.items()])
+            self._extended_pattern = process_pattern(self.graph_pattern, prefix_str=rdf_prefixes, extend=True)
         return self._extended_pattern
 
     @property
