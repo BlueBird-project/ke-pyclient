@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 from ke_client import rdf_nil
 from rdflib import Graph, Namespace, RDF, OWL, RDFS,XSD
@@ -149,7 +149,7 @@ def extract_new_triples(g_small, g_large, allow_extra_knowledge=False):
     return new_triples, new_triple_map, all_mapping
 
 
-def process_pattern(pattern_str, extend=False, ontology_files: List[str] = None):
+def process_pattern(pattern_str, prefix_str:Optional="",extend=False, ontology_files: List[str] = None):
     g = Graph()
 
     # Pre-processing: Turtle parser doesn't like naked '?' variables.
