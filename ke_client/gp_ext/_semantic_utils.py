@@ -179,8 +179,12 @@ class SemanticExt:
 
     def set_ki(self, gp: GraphPattern, ki_type: str):
         # TODO: check if similar graph pattern does not already exists
-        if ki_type != KnowledgeInteractionType.ANSWER:
-            raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction")
+        # if ki_type != KnowledgeInteractionType.ANSWER :
+        # raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction")
+        if not ((ki_type == KnowledgeInteractionType.ANSWER) or
+                (ki_type == KnowledgeInteractionType.POST and not gp.result_pattern)):
+            raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction" +
+                             " or POST without react pattern")
         sc_ki = gp.init_sc_ki(ki_type=ki_type)
         return self.ki_cache[self.kb_id][sc_ki]
 
@@ -195,12 +199,12 @@ class SemanticExt:
             self._sc_list = KERestClient.get_client().list_sc()
         return self._sc_list
 
-    def match_ask(self, ki_name: str, graph_pattern: GraphPattern, handler: Optional[Callable]) -> List[
+    def match_ki(self, ki_name: str, graph_pattern: GraphPattern, handler: Optional[Callable]) -> List[
         KnowledgeInteraction]:
         additional_patterns: List[KnowledgeInteraction] = []
         for i, sc in enumerate(self.sc_list):
             kb_id = sc.knowledge_base_id
-            ki_pattern: KIPattern = self.match_kb_ask(ki_name=ki_name, other_kb_id=kb_id)
+            ki_pattern: KIPattern = self.match_kb_ki(ki_name=ki_name, other_kb_id=kb_id)
             if ki_pattern is not None:
                 # todo: check if similar graph pattern hasn't been already added to the list
                 new_gp = GraphPattern(**graph_pattern.__dict__, graph_pattern=ki_pattern.graph_pattern_new)
@@ -210,7 +214,7 @@ class SemanticExt:
                 additional_patterns.append(ki)
         return additional_patterns
 
-    def match_kb_ask(self, ki_name: str, other_kb_id: str) \
+    def match_kb_ki(self, ki_name: str, other_kb_id: str) \
             -> Optional[KIPattern]:
         from ke_client import ke_settings
         if not ke_settings.extend_graph_patterns:
@@ -222,7 +226,9 @@ class SemanticExt:
             kb_cache = SemanticExt.KBCache(kb_id=other_kb_id, ki_patterns={})
             from ke_client import KERestClient
             for ki in KERestClient.get_client().get_sc_ki(kb_id=other_kb_id):
-                if ki.knowledge_interaction_type == KnowledgeInteractionType.ASK:
+                # TODO: filter out REACT?
+                if (ki.knowledge_interaction_type == KnowledgeInteractionType.ASK or
+                        (ki.knowledge_interaction_type == KnowledgeInteractionType.REACT and not ki.result_graph_pattern )):
                     kb_cache.set_item(ki=ki)
 
             self.ki_cache[other_kb_id] = kb_cache
