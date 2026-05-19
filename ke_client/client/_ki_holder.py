@@ -97,8 +97,8 @@ class KIHolder:
         if not ke_settings.extend_graph_patterns:
             return
         if not ((ki_type == KnowledgeInteractionType.ANSWER) or
-                (ki_type == KnowledgeInteractionType.POST and not graph_pattern.result_pattern)):
-            # no answer or POST without result pattern
+                (ki_type == KnowledgeInteractionType.REACT and not graph_pattern.result_pattern)):
+            # no answer or REACT without result pattern
             return
         ki_type_value = ki_type.value if type(ki_type) is EnumItem else ki_type
 

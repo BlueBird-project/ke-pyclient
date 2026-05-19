@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import List, Tuple, Dict, Any, Optional, Union, Callable, Type, Iterable
+from typing import List, Tuple, Dict, Optional, Union, Callable, Type, Iterable
 from rdflib import RDF, RDFS, XSD, OWL, DCTERMS, TIME, URIRef
 from rdflib.namespace import DefinedNamespace
 from rdflib import Graph, Node, Namespace
@@ -77,7 +77,7 @@ class KIPattern:
         self.ext_gp_id = ki_id
 
     @property
-    def graph_pattern_new(self) -> str:
+    def graph_pattern_ext_all(self) -> str:
         g = Graph()
         for t in self.triples:
             g.set(t)
@@ -89,14 +89,23 @@ class KIPattern:
         return g.serialize(format="nt")
 
     @property
-    def graph_pattern_ext(self) -> str:
-        g = Graph()
+    def triples_ext_all(self) -> List[Tuple]:
+        triples_all = [*self.triples]
         for t in self.ext_new_triples:
             _t = tuple([self._ext_all_mapping[s] if s in self._ext_all_mapping else s for s in t])
             # noinspection PyTypeChecker
-            g.set(_t)
-        g.namespace_manager.reset()
-        return g.serialize(format="nt")
+            triples_all.append(_t)
+        return triples_all
+
+    # @property
+    # def graph_pattern_ext(self) -> str:
+    #     g = Graph()
+    #     for t in self.ext_new_triples:
+    #         _t = tuple([self._ext_all_mapping[s] if s in self._ext_all_mapping else s for s in t])
+    #         # noinspection PyTypeChecker
+    #         g.set(_t)
+    #     g.namespace_manager.reset()
+    #     return g.serialize(format="nt")
 
     @property
     def ki_id(self):
@@ -187,7 +196,7 @@ class SemanticExt:
         # if ki_type != KnowledgeInteractionType.ANSWER :
         # raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction")
         if not ((ki_type == KnowledgeInteractionType.ANSWER) or
-                (ki_type == KnowledgeInteractionType.POST and not gp.result_pattern)):
+                (ki_type == KnowledgeInteractionType.REACT and not gp.result_pattern)):
             raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction" +
                              " or POST without react pattern")
         sc_ki = gp.init_sc_ki(ki_type=ki_type)
@@ -212,7 +221,8 @@ class SemanticExt:
             ki_pattern: KIPattern = self.match_kb_ki(ki_name=ki_name, other_kb_id=kb_id)
             if ki_pattern is not None:
                 # todo: check if similar graph pattern hasn't been already added to the list
-                new_gp = GraphPattern(**graph_pattern.__dict__, graph_pattern=ki_pattern.graph_pattern_new)
+                new_gp = GraphPattern(**graph_pattern.__dict__, pattern=".\n".join(ki_pattern.graph_pattern_ext_all))
+                # graph_pattern=ki_pattern.graph_pattern_ext_all)
                 ki = KnowledgeInteraction(ki_name=f"ext-{i}-{ki_name}", handler=handler,
                                           ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
                                           graph_pattern=new_gp)
@@ -231,9 +241,9 @@ class SemanticExt:
             kb_cache = SemanticExt.KBCache(kb_id=other_kb_id, ki_patterns={})
             from ke_client import KERestClient
             for ki in KERestClient.get_client().get_sc_ki(kb_id=other_kb_id):
-                # TODO: filter out REACT?
+                # TODO: filter out POST?
                 if (ki.knowledge_interaction_type == KnowledgeInteractionType.ASK or (
-                        ki.knowledge_interaction_type == KnowledgeInteractionType.REACT and
+                        ki.knowledge_interaction_type == KnowledgeInteractionType.POST and
                         not ki.result_graph_pattern)):
                     kb_cache.set_item(ki=ki)
 
