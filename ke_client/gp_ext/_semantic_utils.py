@@ -129,11 +129,16 @@ class SemanticExt:
                     ki_id = None
                 else:
                     ki_id = ki.knowledge_interaction_id
+                if ki.knowledge_interaction_type == KnowledgeInteractionType.REACT:
+                    graph_pattern = ki.argument_graph_pattern
+                else:
+                    graph_pattern = ki.graph_pattern
+
                 self.ki_patterns[ki.knowledge_interaction_name] \
                     = KIPattern(kb_id=self.kb_id,
                                 ki_name=ki.knowledge_interaction_name,
                                 interaction_type=ki.knowledge_interaction_type,
-                                graph_pattern=ki.graph_pattern, ki_id=ki_id, prefixes=ki.prefixes)
+                                graph_pattern=graph_pattern, ki_id=ki_id, prefixes=ki.prefixes)
             return self.ki_patterns[ki.knowledge_interaction_name]
 
         def set_item(self, ki: SCKnowledgeInteractionBase) -> KIPattern:
@@ -228,7 +233,8 @@ class SemanticExt:
             for ki in KERestClient.get_client().get_sc_ki(kb_id=other_kb_id):
                 # TODO: filter out REACT?
                 if (ki.knowledge_interaction_type == KnowledgeInteractionType.ASK or
-                        (ki.knowledge_interaction_type == KnowledgeInteractionType.REACT and not ki.result_graph_pattern )):
+                        (
+                                ki.knowledge_interaction_type == KnowledgeInteractionType.REACT and not ki.result_graph_pattern)):
                     kb_cache.set_item(ki=ki)
 
             self.ki_cache[other_kb_id] = kb_cache
