@@ -213,8 +213,8 @@ class SemanticExt:
             self._sc_list = KERestClient.get_client().list_sc()
         return self._sc_list
 
-    def match_ki(self, ki_name: str, graph_pattern: GraphPattern, handler: Optional[Callable]) -> List[
-        KnowledgeInteraction]:
+    def match_ki(self, ki_name: str, graph_pattern: GraphPattern, handler: Optional[Callable]) \
+            -> List[KnowledgeInteraction]:
         additional_patterns: List[KnowledgeInteraction] = []
         for i, sc in enumerate(self.sc_list):
             kb_id = sc.knowledge_base_id
@@ -222,7 +222,7 @@ class SemanticExt:
             if ki_pattern is not None:
                 # todo: check if similar graph pattern hasn't been already added to the list
                 new_gp = GraphPattern(
-                    **{**graph_pattern.__dict__, "pattern": ki_pattern.triples_ext_all})
+                    **{**graph_pattern.__dict__, "pattern": [" ".join(t) for t in ki_pattern.triples_ext_all]})
                 # graph_pattern=ki_pattern.graph_pattern_ext_all)
                 ki = KnowledgeInteraction(ki_name=f"ext-{i}-{ki_name}", handler=handler,
                                           ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
