@@ -95,6 +95,14 @@ class KESettings(DictBaseSettings):
     def has_extend_graph_patterns_mode(self, extend_graph_patterns_mode: EnumItem) -> bool:
         return True if int(self.extend_graph_patterns_mode, 2) & extend_graph_patterns_mode.value else False
 
+    def graph_patterns_modes(self, extend_graph_patterns_mode: EnumItem) -> Dict:
+        from ke_client.gp_ext._model import GraphPatternExtMode
+        return {
+            GraphPatternExtMode.TRIPLE_MATCH: self.has_extend_graph_patterns_mode(GraphPatternExtMode.TRIPLE_MATCH),
+            GraphPatternExtMode.SPARQL_MATCH: self.has_extend_graph_patterns_mode(GraphPatternExtMode.SPARQL_MATCH),
+            GraphPatternExtMode.ONTOLOGY_SPARQL_MATCH: self.has_extend_graph_patterns_mode(GraphPatternExtMode.ONTOLOGY_SPARQL_MATCH),
+        }
+
     # def get_prefix_namespace(self):
     #     from rdflib import RDF, RDFS, XSD, OWL
     #     from rdflib import Namespace

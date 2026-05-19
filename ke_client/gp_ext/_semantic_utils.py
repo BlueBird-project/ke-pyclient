@@ -169,6 +169,8 @@ class SemanticExt:
         # , ki_list: Optional[List[SCKnowledgeInteraction]] = None):
         self.kb_id = kb_id
         self.ki_cache = {kb_id: SemanticExt.KBCache(kb_id=kb_id, ki_patterns={})}
+        from ke_client import ke_settings
+        logging.info(f"Available modes: {ke_settings.graph_patterns_modes()}")
 
     # def __init__(self, kb_id: str, ki_list: List[SCKnowledgeInteraction], only_answer_ki=True):
     #     self.kb_id = kb_id
@@ -223,7 +225,7 @@ class SemanticExt:
                 # todo: check if similar graph pattern hasn't been already added to the list
                 new_pattern = [" ".join([t.n3() for t in triple]) + " . " for triple in ki_pattern.triples_ext_all]
                 new_gp = GraphPattern(
-                    **{**graph_pattern.__dict__, "pattern":new_pattern})
+                    **{**graph_pattern.__dict__, "pattern": new_pattern})
                 # graph_pattern=ki_pattern.graph_pattern_ext_all)
                 ki = KnowledgeInteraction(ki_name=f"ext-{i}-{ki_name}", handler=handler,
                                           ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
