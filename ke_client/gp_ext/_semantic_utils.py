@@ -204,7 +204,7 @@ class SemanticExt:
             if ki_pattern is not None:
                 # todo: check if similar graph pattern hasn't been already added to the list
                 new_gp = GraphPattern(**graph_pattern.__dict__, graph_pattern=ki_pattern.graph_pattern_new)
-                ki = KnowledgeInteraction(ki_name=f"ext_{i}-{ki_name}", handler=handler,
+                ki = KnowledgeInteraction(ki_name=f"ext-{i}-{ki_name}", handler=handler,
                                           ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
                                           graph_pattern=new_gp)
                 additional_patterns.append(ki)
