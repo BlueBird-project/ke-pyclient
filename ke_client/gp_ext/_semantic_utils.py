@@ -227,7 +227,7 @@ class SemanticExt:
                 new_gp = GraphPattern(
                     **{**graph_pattern.__dict__, "pattern": new_pattern})
                 # graph_pattern=ki_pattern.graph_pattern_ext_all)
-                ki = KnowledgeInteraction(ki_name=f"ext-{i}-{ki_name}", handler=handler,
+                ki = KnowledgeInteraction(ki_name=f"-EXT-{i}-{ki_name}", handler=handler,
                                           ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
                                           graph_pattern=new_gp)
                 additional_patterns.append(ki)
@@ -246,9 +246,10 @@ class SemanticExt:
             from ke_client import KERestClient
             for ki in KERestClient.get_client().get_sc_ki(kb_id=other_kb_id):
                 # TODO: filter out POST?
-                if (ki.knowledge_interaction_type == KnowledgeInteractionType.ASK or (
+                if ((ki.knowledge_interaction_type == KnowledgeInteractionType.ASK or (
                         ki.knowledge_interaction_type == KnowledgeInteractionType.POST and
-                        not ki.result_graph_pattern)):
+                        not ki.result_graph_pattern))
+                        and not ki.knowledge_interaction_name.startswith("-EXT-")):
                     kb_cache.set_item(ki=ki)
 
             self.ki_cache[other_kb_id] = kb_cache
