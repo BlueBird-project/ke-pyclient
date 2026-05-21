@@ -83,8 +83,6 @@ class KIHolder:
         self._ke_client = None
         self._client_ki = {}
 
-    #     todo: set private logger
-
     def get_ki(self, name: str):
         return self._client_ki[name]
 

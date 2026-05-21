@@ -29,7 +29,6 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
     kb_name: str
     ke_rest_endpoint: str
     kb_description: Optional[str] = None
-    # TODO: validate reasoner_level can be equal only to 1,2,3,4
     reasoner_level: int = 1
     # client loop
     _handler_loop_thread_: Optional[threading.Thread] = None
@@ -79,8 +78,11 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         # self.reasoner_level = reasoner_level
         if prefixes is None:
             prefixes = {}
+        if reasoner_level not in [1, 2, 3, 4]:
+            raise ValueError(f"Invalid reasoner level value : {reasoner_level}. Valid options: 1,2,3,4 ")
         super().__init__(kb_id=kb_id, kb_name=kb_name, ke_rest_endpoint=ke_rest_endpoint, kb_description=kb_description,
                          prefixes=prefixes, partial_ki=partial_ki, reasoner_level=reasoner_level)
+
         self._verify_cert_ = verify_cert
         self._logger_ = logging.getLogger() if logger is None else logger
         self._logger_.info(f"Initialized client to {ke_rest_endpoint}")
@@ -151,7 +153,6 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         #         accu += filtered_bindings_set
         #     return post_response
         return post_response
-
 
     # endregion
 

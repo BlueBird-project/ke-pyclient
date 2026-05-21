@@ -111,11 +111,7 @@ def _load_yml(config_path, section, file_vars: Optional[Dict] = None):
                     #   Todo: handle  error
                     raise Exception(f"invalid setting section {section}")
         except yaml.YAMLError as exc:
-            # TODO: log/handle error
-            print(exc)
-        # except FileNotFoundError as exc:
-        #     # TODO: log/handle error
-        #     print(exc)
+            raise Exception(f"YAMLError {exc} in {config_path}")
     return _config
 
 

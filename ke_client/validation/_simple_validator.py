@@ -243,8 +243,7 @@ class SimpleValidator(GraphValidator):
             if isinstance(s, URIRef):
                 if s not in self.known_resources:
                     if is_uri_default(uri=s, namespaces=namespaces):
-                        # TODO: warning?
-                        pass
+                        logging.warning(f"Unknown subject: {s} in the default namespace.")
                     else:
                         errors.append(f"Unknown subject: {s}")
                         # --------------------------------------------------
@@ -253,8 +252,8 @@ class SimpleValidator(GraphValidator):
             if isinstance(o, URIRef):
                 if o not in self.known_resources:
                     if is_uri_default(uri=o, namespaces=namespaces):
-                        # TODO: warning?
-                        pass
+                        logging.warning(f"Unknown object: {o} in the default namespace.")
+
                     else:
                         errors.append(f"Unknown object: {o}")
             # --------------------------------------------------
@@ -275,14 +274,12 @@ class SimpleValidator(GraphValidator):
                     subject_types = get_all_types(graph_node=s, variable_types=variable_types)
                     # subject_types =   variable_types.get(s, set())
                     if subject_types:
-                        # todo:
-
                         valid = any(self._assert_node_type(node_type=subject_type, expected_type=expected_domain)
                                     for subject_type in subject_types)
                         if not valid and not ke_settings.nodes_unspecified_types:
-                            errors.append(f"Domain violation {p}: {s} must be: {expected_domain} ")
+                            errors.append(f"Variable domain violation {p}: {s} must be: {expected_domain} ")
                         elif not valid:
-                            logging.warning(f"Domain violation {p}: {s} must be: {expected_domain} ")
+                            logging.warning(f"Variable domain violation {p}: {s} must be: {expected_domain} ")
 
             # --------------------------------------------------
             # range validation
