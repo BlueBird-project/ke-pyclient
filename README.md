@@ -2,8 +2,6 @@
 
 Python client for TNO Knowledge Engine
 
-
-
 ## Library management
 
 ### build
@@ -38,20 +36,31 @@ list of published versions: [here](https://github.com/BlueBird-project/ke-pyclie
 ```
 pip install git+https://github.com/BlueBird-project/ke-pyclient.git
 ```
- 
 
+### Extending KI Graph pattern
 
+**Only REACT and ANSWER**
+
+**POST and ASK aren't extended** - adding one of those type new KI would require calling the same handler multiple
+times.
+Each handler call would result with new KI and potentially the same information could be sent to the client more than
+once due to multiple separate KIs.
 OLD:
+
 ```
 -i  https://__token__:glpat-ImK7hy9M8LSfcyRsGTCbi286MQp1OjFmNAk.01.0z15f6qqh@gitlab.pcss.pl/api/v4/projects/2735/packages/pypi/simple
 ke_client==0.5.15
 ```
+
 Add extra index to the client repository
+
 ``` 
 --extra-index-url https://__token__:glpat-ImK7hy9M8LSfcyRsGTCbi286MQp1OjFmNAk.01.0z15f6qqh@gitlab.pcss.pl/api/v4/projects/2735/packages/pypi/simple
 
 ```
+
 install
+
 ``` 
 pip install ke_client==0.16.1
 ```
