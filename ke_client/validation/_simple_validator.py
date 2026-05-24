@@ -296,13 +296,16 @@ class SimpleValidator(GraphValidator):
                 elif is_variable(o):
                     # variable object
                     object_types = get_all_types(graph_node=o, variable_types=variable_types)
+                    valid = False
                     if object_types:
                         valid = any(self._assert_node_type(node_type=object_type, expected_type=expected_range)
                                     for object_type in object_types)
-                        if not valid and not ke_settings.nodes_unspecified_types:
-                            errors.append(f"Range violation {p}: {o} must be {expected_range} ")
-                        elif not valid:
-                            logging.warning(f"Range violation {p}: {o} must be {expected_range} ")
+                    if not valid and not ke_settings.nodes_unspecified_types:
+                        errors.append(f"Range violation {p}: {o} must be {expected_range} ")
+                    elif not valid:
+                        # variable's type is not defined
+                        logging.warning(f"Range violation {p}: {o} must be {expected_range} ")
+
                 elif isinstance(o, URIRef):
                     # URI object
                     pass
