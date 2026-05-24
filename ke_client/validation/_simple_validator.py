@@ -150,6 +150,7 @@ class SimpleValidator(GraphValidator):
 
         ontology_graph = Graph()
         for ttl_file_path in turtle_files:
+            logging.info(f"Load ontology from: {ttl_file_path}")
             ontology_graph.parse(ttl_file_path, format="turtle")
         return SimpleValidator(ontology_graph=ontology_graph)
 

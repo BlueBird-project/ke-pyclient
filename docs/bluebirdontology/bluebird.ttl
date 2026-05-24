@@ -2,7 +2,7 @@
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
 @prefix geo:      <http://www.opengis.net/ont/geosparql> .
-@prefix ubmarket: <https://ubflex.bluebird.eu/market> .
+@prefix ubmarket: <https://ubflex.bluebird.eu/market/> .
 @prefix saref:    <https://saref.etsi.org/core/> .
 @prefix s4city:   <https://saref.etsi.org/saref4city/> .
 @prefix s4ener:   <https://saref.etsi.org/saref4ener/> .
@@ -28,10 +28,9 @@ ubmarket:MarketTimeSeries
 
 ubmarket:MarketType
     a               rdfs:Class ;
-    rdfs:subClassOf saref:FeatureOfInterest , foaf:Agent; ;
+    rdfs:subClassOf saref:FeatureOfInterest, foaf:Agent ;
     rdfs:comment    "Type of the market DayAheadMarket|CapacityMarket"@en ;
     rdfs:label      "MarketType" .
-
 
 ubmarket:DayAheadMarket
     a               rdfs:Class ;
@@ -50,6 +49,12 @@ ubmarket:hasMarketSequence
     rdfs:comment "Market sequence"@en ;
     rdfs:range   xsd:string ;
     rdfs:label   "hasMarketSequence" .
+#ubmarket:hasMarketSequence2
+#    a            owl:DatatypeProperty ;
+#    rdfs:domain     [ owl:unionOf ( ubmarket:DayAheadMarket ubmarket:IntradayMarket  ubmarket:MarketTimeSeries)  ] ;
+#    rdfs:comment "Market sequence"@en ;
+#    rdfs:range   xsd:string ;
+#    rdfs:label   "hasMarketSequence" .
 #ubmarket:hasMarketSequence
 #    a            owl:DatatypeProperty ;
 #    rdfs:domain ubmarket:MarketTimeSeries ;
@@ -210,4 +215,16 @@ ubmarket:hasPowerRange
     rdfs:range  s4ener:PowerRange ;
     rdfs:label  "hasPowerRange" .
 
- 
+#units:
+
+ubmarket:EURPerMegawattHour
+    a               rdfs:Class ;
+    rdfs:subClassOf saref:UnitOfMeasure ;
+    rdfs:comment    "EURPerMegawattHour"@en ;
+    rdfs:label      "EURPerMegawattHour" .
+
+ubmarket:PLNPerMegawattHour
+    a               rdfs:Class ;
+    rdfs:subClassOf saref:UnitOfMeasure ;
+    rdfs:comment    "EURPerMegawattHour"@en ;
+    rdfs:label      "EURPerMegawattHour" .
