@@ -302,8 +302,9 @@ class SimpleValidator(GraphValidator):
                                     for object_type in object_types)
                     if not valid and not ke_settings.nodes_unspecified_types:
                         errors.append(f"Range violation {p}: {o} must be {expected_range} ")
-                    elif not valid:
-                        # variable's type is not defined
+                    elif not valid and p not in self.datatype_properties:
+                        # variable's type is not defined, and p is not DatatypeProperty
+                        # (object is a Literal , not URIRef potentially linked with other resource )
                         logging.warning(f"Range violation {p}: {o} must be {expected_range} ")
 
                 elif isinstance(o, URIRef):
