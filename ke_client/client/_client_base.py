@@ -147,7 +147,7 @@ class KEClientBase(BaseModel):
         base_ki: Dict[str, KnowledgeInteraction] = {k: ki for k, ki in self._client_ki.items() if
                                                     not ki.ki_name.startswith("-EXT-")}
         extension_ki: Dict[str, KnowledgeInteraction] = {}
-        for ki in self.base_ki.values():
+        for ki in base_ki.values():
             extended_ki = gp_ext.get_extended_gp_ki(graph_pattern=ki.graph_pattern, ki_type=ki.ki_type,
                                                     handler=ki.handler)
             if extended_ki:
