@@ -169,6 +169,7 @@ class KEClientBase(BaseModel):
             else:
                 self._delete_registered_ki_()
 
+            self._registered_ki_ = {}
             for ki in self._client_ki.values():
                 self._register_knowledge_interaction_(ki)
             self._is_ki_registered = True
