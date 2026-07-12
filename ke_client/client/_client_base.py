@@ -17,7 +17,6 @@ import ke_client.ke_vars as ke_vars
 
 
 class KEClientBase(BaseModel):
-
     prefixes: dict
     # region private fields
     _logger_: Logger = None
@@ -142,20 +141,43 @@ class KEClientBase(BaseModel):
     # endregion
 
     # region registration/init
-    def _register_procedure(self):
+    def _try_extend_kis_(self):
+        from ke_client.gp_ext import get_gp_extender
+        gp_ext = get_gp_extender()
+        base_ki: Dict[str, KnowledgeInteraction] = {k: ki for k, ki in self._client_ki.items() if
+                                                    not ki.knowledge_interaction_name.startswith("-EXT-")}
+        extension_ki: Dict[str, KnowledgeInteraction] = {}
+        for ki in self.base_ki.values():
+            extended_ki = gp_ext.get_extended_gp_ki(graph_pattern=ki.graph_pattern, ki_type=ki.ki_type,
+                                                    handler=ki.handler)
+            for ext_ki in extended_ki:
+                if ext_ki.ki_name in extension_ki:
+                    raise Exception(f"Duplicate knowledge interaction: 'ext_*-{ki.graph_pattern.name}' ({ki.ki_type}).")
+                extension_ki[ext_ki.ki_name] = ext_ki
+        return base_ki, extension_ki
+
+    def _register_procedure(self, try_extend_gp: bool):
         try:
             self._is_ki_registered = False
             self._register_knowledge_base_()
-            self._delete_registered_ki_()
+            if try_extend_gp:
+                base_ki, extension_ki = self._try_extend_kis_()
+                self._delete_registered_ki_()
+                self._client_ki = {**base_ki, **extension_ki}
+            else:
+                self._delete_registered_ki_()
+
+            for ki in self._client_ki.values():
+                self._register_knowledge_interaction_(ki)
             self._is_ki_registered = True
         finally:
             self._registration_pending = False
 
-    def register(self, bg=False):
+    def register(self, bg=False,try_extend_gp=False):
         self._lock.acquire()
         if not self._is_registered and not self._registration_pending:
             self._registration_pending = True
-            t = Thread(target=self._register_procedure)
+            t = Thread(target=lambda: self._register_procedure(try_extend_gp))
             self._lock.release()
             t.start()
             if not bg:
@@ -167,7 +189,7 @@ class KEClientBase(BaseModel):
             # self._check_registered_ki_()
             # self._is_ki_registered = True
 
-    def _reconnect(self, timeout_s: int):
+    def _reconnect(self, timeout_s: int,try_extend_gp:bool):
         self._is_reconnecting_ = True
         self._current_wait_timeout_ = max(timeout_s, 5)
 
@@ -179,7 +201,7 @@ class KEClientBase(BaseModel):
             time.sleep(self._current_wait_timeout_)
             i += 1
             try:
-                self._reconnect_procedure_()
+                self._reconnect_procedure_(try_extend_gp=try_extend_gp)
             except Exception as err:
                 self.logger.error(f"Failed to reconnect {err}")
             self._current_wait_timeout_ = min(int(self._current_wait_timeout_ * 1.5), 600)
@@ -191,7 +213,7 @@ class KEClientBase(BaseModel):
             self.logger.error("Failed to reconnect")
         self._is_reconnecting_ = False
 
-    def reconnect(self, timeout_s: int = 30, bg=False):
+    def reconnect(self, timeout_s: int = 30, bg=False,try_extend_gp:bool=False):
         self._lock.acquire()
         try:
             if self._is_reconnecting_:
@@ -203,12 +225,12 @@ class KEClientBase(BaseModel):
             self.stop()
             if bg:
                 def reconnect_wrapper():
-                    self._reconnect(timeout_s)
+                    self._reconnect(timeout_s,try_extend_gp=try_extend_gp)
 
                 t = Thread(target=reconnect_wrapper)
                 t.start()
             else:
-                self._reconnect(timeout_s=timeout_s)
+                self._reconnect(timeout_s=timeout_s,try_extend_gp=try_extend_gp)
         finally:
 
             self._lock.release()
@@ -257,16 +279,19 @@ class KEClientBase(BaseModel):
         self._registered_ki_[ki_id] = ki
         return ki_id
 
-    def _reconnect_procedure_(self):
+    def _reconnect_procedure_(self,try_extend_gp:bool):
         # try:
         #     self.stop()
         # except Exception as ex:
         #     self._logger_.error(f"Stop error: {ex}")
         self._registered_ki_ = None
         self._is_registered = False
-        self.register(bg=False)
+        self.register(bg=False,try_extend_gp=try_extend_gp)
 
     def _delete_registered_ki_(self):
+        """clear current ki in KE server
+        :return:
+        """
         if self._registered_ki_ is None:
             'knowledgeInteractionName'
             # response = self._get_(endpoint=self.ke_rest_endpoint + "sc/ki/",
@@ -297,9 +322,6 @@ class KEClientBase(BaseModel):
                             verify=self._verify_cert_
                         )
                         assert response.ok
-                self._registered_ki_ = {}
-                for ki in self._client_ki.values():
-                    self._register_knowledge_interaction_(ki)
             else:
                 raise Exception(f"Can't check registered interactions, response: {response.status_code}")
                 # self.logger.error("Can't check registered interactions")

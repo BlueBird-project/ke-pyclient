@@ -29,7 +29,7 @@ ubmarket:MarketTimeSeries
 ubmarket:MarketType
     a               rdfs:Class ;
     rdfs:subClassOf saref:FeatureOfInterest, foaf:Agent ;
-    rdfs:comment    "Type of the market DayAheadMarket|CapacityMarket"@en ;
+    rdfs:comment    "Type of the market DayAheadMarket|CapacityMarket|IntradayMarket"@en ;
     rdfs:label      "MarketType" .
 
 ubmarket:DayAheadMarket

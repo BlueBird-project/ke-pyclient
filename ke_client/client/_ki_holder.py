@@ -89,21 +89,30 @@ class KIHolder:
     def list_ki(self):
         return self._client_ki.values()
 
+    # def try_extend_ki(self, graph_pattern: GraphPattern, ki_type: Union[str, EnumItem], handler: Optional[Callable]):
+    #     from ke_client.gp_ext import get_gp_extender
+    #     from ke_client import ke_settings
+    #     if not ke_settings.extend_graph_patterns:
+    #         return
+    #     if not ((ki_type == KnowledgeInteractionType.ANSWER) or
+    #             (ki_type == KnowledgeInteractionType.REACT and not graph_pattern.result_pattern)):
+    #         # no answer or REACT without result pattern
+    #         return
+    #     ki_type_value = ki_type.value if type(ki_type) is EnumItem else ki_type
+    #
+    #     gp_ext = get_gp_extender()
+    #     ki_pattern = gp_ext.set_ki(gp=graph_pattern, ki_type=ki_type_value)
+    #     extended_ki = gp_ext.match_ki(ki_name=ki_pattern.ki_name, graph_pattern=graph_pattern, handler=handler)
+    #     logging.info(f"Extending {ki_pattern.ki_name} with {len(extended_ki)} ki patterns .")
+    #     for ki in extended_ki:
+    #         if ki.ki_name in self._client_ki:
+    #             raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")
+    #         self._client_ki[ki.ki_name] = ki
     def try_extend_ki(self, graph_pattern: GraphPattern, ki_type: Union[str, EnumItem], handler: Optional[Callable]):
         from ke_client.gp_ext import get_gp_extender
-        from ke_client import ke_settings
-        if not ke_settings.extend_graph_patterns:
-            return
-        if not ((ki_type == KnowledgeInteractionType.ANSWER) or
-                (ki_type == KnowledgeInteractionType.REACT and not graph_pattern.result_pattern)):
-            # no answer or REACT without result pattern
-            return
-        ki_type_value = ki_type.value if type(ki_type) is EnumItem else ki_type
 
         gp_ext = get_gp_extender()
-        ki_pattern = gp_ext.set_ki(gp=graph_pattern, ki_type=ki_type_value)
-        extended_ki = gp_ext.match_ki(ki_name=ki_pattern.ki_name, graph_pattern=graph_pattern, handler=handler)
-        logging.info(f"Extending {ki_pattern.ki_name} with {len(extended_ki)} ki patterns .")
+        extended_ki = gp_ext.get_extended_gp_ki(graph_pattern=graph_pattern, ki_type=ki_type, handler=handler)
         for ki in extended_ki:
             if ki.ki_name in self._client_ki:
                 raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")

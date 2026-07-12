@@ -10,6 +10,7 @@ from ke_client.gp_ext._sub_graph_utils import parse_turtle_pattern, process_patt
     extract_new_triples, triple_subgraph_check
 from ke_client.ki_model import SCKnowledgeInteraction, KnowledgeInteractionType, SCKnowledgeInteractionBase, \
     GraphPattern, SmartClient, KnowledgeInteraction
+from ke_client.utils.enum_utils import EnumItem
 
 
 class KIPattern:
@@ -114,7 +115,7 @@ class KIPattern:
         return self._ki_id
 
 
-class SemanticExt:
+class SemanticGPExt:
     # region fields
     class KBCache:
         kb_id: str
@@ -168,7 +169,7 @@ class SemanticExt:
     def __init__(self, kb_id: str):
         # , ki_list: Optional[List[SCKnowledgeInteraction]] = None):
         self.kb_id = kb_id
-        self.ki_cache = {kb_id: SemanticExt.KBCache(kb_id=kb_id, ki_patterns={})}
+        self.ki_cache = {kb_id: SemanticGPExt.KBCache(kb_id=kb_id, ki_patterns={})}
         from ke_client import ke_settings
         logging.info(f"Available modes: {ke_settings.graph_patterns_modes()}")
 
@@ -192,6 +193,27 @@ class SemanticExt:
     #     KBCache
     #     self.kb_id = kb_id
     #     self.ki_cache = {kb_id: SemanticExt.KBCache(kb_id=kb_id, ki_patterns={})}
+    def get_extended_gp_ki(self, graph_pattern: GraphPattern, ki_type: Union[str, EnumItem], handler: Optional[Callable]):
+        """
+        extend graph pattern to match more clients
+        :param graph_pattern:
+        :param ki_type:
+        :param handler:
+        :return:
+        """
+        from ke_client import ke_settings
+        if not ke_settings.extend_graph_patterns:
+            return
+        if not ((ki_type == KnowledgeInteractionType.ANSWER) or
+                (ki_type == KnowledgeInteractionType.REACT and not graph_pattern.result_pattern)):
+            # no answer or REACT without result pattern
+            return
+        ki_type_value = ki_type.value if type(ki_type) is EnumItem else ki_type
+
+        ki_pattern = self.set_ki(gp=graph_pattern, ki_type=ki_type_value)
+        extended_ki = self.match_ki(ki_name=ki_pattern.ki_name, graph_pattern=graph_pattern, handler=handler)
+        logging.info(f"Extending {ki_pattern.ki_name} with {len(extended_ki)} ki patterns .")
+        return extended_ki
 
     def set_ki(self, gp: GraphPattern, ki_type: str):
         # TODO: check if similar graph pattern does not already exists
@@ -242,7 +264,7 @@ class SemanticExt:
         ki_pattern: KIPattern = self.ki_cache[self.kb_id].ki_patterns[ki_name]
         if other_kb_id not in self.ki_cache:
             from ke_client import KERestClient
-            kb_cache = SemanticExt.KBCache(kb_id=other_kb_id, ki_patterns={})
+            kb_cache = SemanticGPExt.KBCache(kb_id=other_kb_id, ki_patterns={})
             from ke_client import KERestClient
             for ki in KERestClient.get_client().get_sc_ki(kb_id=other_kb_id):
                 # TODO: filter out POST?
