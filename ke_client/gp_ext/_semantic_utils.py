@@ -193,7 +193,8 @@ class SemanticGPExt:
     #     KBCache
     #     self.kb_id = kb_id
     #     self.ki_cache = {kb_id: SemanticExt.KBCache(kb_id=kb_id, ki_patterns={})}
-    def get_extended_gp_ki(self, graph_pattern: GraphPattern, ki_type: Union[str, EnumItem], handler: Optional[Callable]):
+    def get_extended_gp_ki(self, graph_pattern: GraphPattern, ki_type: Union[str, EnumItem],
+                           handler: Optional[Callable]) -> Optional[List[KnowledgeInteraction]]:
         """
         extend graph pattern to match more clients
         :param graph_pattern:
@@ -203,11 +204,11 @@ class SemanticGPExt:
         """
         from ke_client import ke_settings
         if not ke_settings.extend_graph_patterns:
-            return
+            return None
         if not ((ki_type == KnowledgeInteractionType.ANSWER) or
                 (ki_type == KnowledgeInteractionType.REACT and not graph_pattern.result_pattern)):
             # no answer or REACT without result pattern
-            return
+            return None
         ki_type_value = ki_type.value if type(ki_type) is EnumItem else ki_type
 
         ki_pattern = self.set_ki(gp=graph_pattern, ki_type=ki_type_value)

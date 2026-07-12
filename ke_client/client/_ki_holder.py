@@ -113,10 +113,11 @@ class KIHolder:
 
         gp_ext = get_gp_extender()
         extended_ki = gp_ext.get_extended_gp_ki(graph_pattern=graph_pattern, ki_type=ki_type, handler=handler)
-        for ki in extended_ki:
-            if ki.ki_name in self._client_ki:
-                raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")
-            self._client_ki[ki.ki_name] = ki
+        if extended_ki:
+            for ki in extended_ki:
+                if ki.ki_name in self._client_ki:
+                    raise Exception(f"Duplicate knowledge interaction: 'ext_*-{graph_pattern.name}' ({ki.ki_type}).")
+                self._client_ki[ki.ki_name] = ki
 
     def _set_ki_(self, gp_name: str, handler, ki_type: Union[str, EnumItem], call_ctx: str) -> KnowledgeInteraction:
         from ke_client.client._ki_utils import require_graph_pattern, try_validate_gp

@@ -150,10 +150,12 @@ class KEClientBase(BaseModel):
         for ki in self.base_ki.values():
             extended_ki = gp_ext.get_extended_gp_ki(graph_pattern=ki.graph_pattern, ki_type=ki.ki_type,
                                                     handler=ki.handler)
-            for ext_ki in extended_ki:
-                if ext_ki.ki_name in extension_ki:
-                    raise Exception(f"Duplicate knowledge interaction: 'ext_*-{ki.graph_pattern.name}' ({ki.ki_type}).")
-                extension_ki[ext_ki.ki_name] = ext_ki
+            if extended_ki:
+                for ext_ki in extended_ki:
+                    if ext_ki.ki_name in extension_ki:
+                        raise Exception(
+                            f"Duplicate knowledge interaction: 'ext_*-{ki.graph_pattern.name}' ({ki.ki_type}).")
+                    extension_ki[ext_ki.ki_name] = ext_ki
         return base_ki, extension_ki
 
     def _register_procedure(self, try_extend_gp: bool):
@@ -173,7 +175,7 @@ class KEClientBase(BaseModel):
         finally:
             self._registration_pending = False
 
-    def register(self, bg=False,try_extend_gp=False):
+    def register(self, bg=False, try_extend_gp=False):
         self._lock.acquire()
         if not self._is_registered and not self._registration_pending:
             self._registration_pending = True
@@ -189,7 +191,7 @@ class KEClientBase(BaseModel):
             # self._check_registered_ki_()
             # self._is_ki_registered = True
 
-    def _reconnect(self, timeout_s: int,try_extend_gp:bool):
+    def _reconnect(self, timeout_s: int, try_extend_gp: bool):
         self._is_reconnecting_ = True
         self._current_wait_timeout_ = max(timeout_s, 5)
 
@@ -213,7 +215,7 @@ class KEClientBase(BaseModel):
             self.logger.error("Failed to reconnect")
         self._is_reconnecting_ = False
 
-    def reconnect(self, timeout_s: int = 30, bg=False,try_extend_gp:bool=False):
+    def reconnect(self, timeout_s: int = 30, bg=False, try_extend_gp: bool = False):
         self._lock.acquire()
         try:
             if self._is_reconnecting_:
@@ -225,12 +227,12 @@ class KEClientBase(BaseModel):
             self.stop()
             if bg:
                 def reconnect_wrapper():
-                    self._reconnect(timeout_s,try_extend_gp=try_extend_gp)
+                    self._reconnect(timeout_s, try_extend_gp=try_extend_gp)
 
                 t = Thread(target=reconnect_wrapper)
                 t.start()
             else:
-                self._reconnect(timeout_s=timeout_s,try_extend_gp=try_extend_gp)
+                self._reconnect(timeout_s=timeout_s, try_extend_gp=try_extend_gp)
         finally:
 
             self._lock.release()
@@ -279,14 +281,14 @@ class KEClientBase(BaseModel):
         self._registered_ki_[ki_id] = ki
         return ki_id
 
-    def _reconnect_procedure_(self,try_extend_gp:bool):
+    def _reconnect_procedure_(self, try_extend_gp: bool):
         # try:
         #     self.stop()
         # except Exception as ex:
         #     self._logger_.error(f"Stop error: {ex}")
         self._registered_ki_ = None
         self._is_registered = False
-        self.register(bg=False,try_extend_gp=try_extend_gp)
+        self.register(bg=False, try_extend_gp=try_extend_gp)
 
     def _delete_registered_ki_(self):
         """clear current ki in KE server
