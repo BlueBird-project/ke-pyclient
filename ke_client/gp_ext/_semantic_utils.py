@@ -242,18 +242,18 @@ class SemanticGPExt:
             -> List[KnowledgeInteraction]:
         additional_patterns: List[KnowledgeInteraction] = []
         for i, sc in enumerate(self.sc_list):
-            kb_id = sc.knowledge_base_id
-            ki_pattern: KIPattern = self.match_kb_ki(ki_name=ki_name, other_kb_id=kb_id)
-            if ki_pattern is not None:
-                # todo: check if similar graph pattern hasn't been already added to the list
-                new_pattern = [" ".join([t.n3() for t in triple]) + " . " for triple in ki_pattern.triples_ext_all]
-                new_gp = GraphPattern(
-                    **{**graph_pattern.__dict__, "pattern": new_pattern})
-                # graph_pattern=ki_pattern.graph_pattern_ext_all)
-                ki = KnowledgeInteraction(ki_name=f"-EXT-{i}-{ki_name}", handler=handler,
-                                          ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
-                                          graph_pattern=new_gp)
-                additional_patterns.append(ki)
+            if self.kb_id != sc.knowledge_base_id:
+                ki_pattern: KIPattern = self.match_kb_ki(ki_name=ki_name, other_kb_id=sc.knowledge_base_id)
+                if ki_pattern is not None:
+                    # todo: check if similar graph pattern hasn't been already added to the list
+                    new_pattern = [" ".join([t.n3() for t in triple]) + " . " for triple in ki_pattern.triples_ext_all]
+                    new_gp = GraphPattern(
+                        **{**graph_pattern.__dict__, "pattern": new_pattern})
+                    # graph_pattern=ki_pattern.graph_pattern_ext_all)
+                    ki = KnowledgeInteraction(ki_name=f"-EXT-{i}-{ki_name}", handler=handler,
+                                              ki_type=KnowledgeInteractionType.parse(ki_pattern.interaction_type),
+                                              graph_pattern=new_gp)
+                    additional_patterns.append(ki)
         return additional_patterns
 
     def match_kb_ki(self, ki_name: str, other_kb_id: str) \
