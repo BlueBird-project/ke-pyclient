@@ -217,13 +217,22 @@ class SemanticGPExt:
         return extended_ki
 
     def set_ki(self, gp: GraphPattern, ki_type: str):
+        """
+        GraphPattern extension (inference) supports only ANSWER interaction  REACT without react pattern -
+         for the other reaction we would need to publish the same information multiple time (base pattern and once per
+         extra inferred/matched pattern)
+        :param gp:
+        :param ki_type:
+        :return:
+        """
         # TODO: check if similar graph pattern does not already exists
         # if ki_type != KnowledgeInteractionType.ANSWER :
         # raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction")
         if not ((ki_type == KnowledgeInteractionType.ANSWER) or
                 (ki_type == KnowledgeInteractionType.REACT and not gp.result_pattern)):
             raise ValueError(f"{gp.name}({ki_type}): GraphPattern extension supports only ANSWER interaction" +
-                             " or POST without react pattern")
+                             " or REACT without react pattern")
+
         sc_ki = gp.init_sc_ki(ki_type=ki_type)
         return self.ki_cache[self.kb_id][sc_ki]
 
@@ -281,9 +290,10 @@ class SemanticGPExt:
             return None
             # return {}
         # here starts pattern inference /extensions
-
+        other_kb_patterns = [ki for ki in other_kb_cache.ki_patterns.values() if
+             KnowledgeInteractionType.is_opposite(ki.interaction_type, ki_pattern.interaction_type)]
         if ke_settings.has_extend_graph_patterns_mode(GraphPatternExtMode.TRIPLE_MATCH):
-            for other_pattern in other_kb_cache.ki_patterns.values():
+            for other_pattern in other_kb_patterns:
                 # triple match - no sparql
                 # other_pattern = other_kb_cache[other_ki]
                 start = time.time()
@@ -292,15 +302,17 @@ class SemanticGPExt:
                                                                 ask_triples=other_pattern.triples,
                                                                 ki_pattern=ki_pattern)
                     if extended_pattern is not None:
-                        logging.info(f"Graph pattern TRIPLE_MATCH  {time.time() - start}s")
+                        logging.info(f"Graph pattern TRIPLE_MATCH  {time.time() - start}s."
+                                     f"Matched with: ({other_pattern.interaction_type}:{other_pattern.ki_id})")
                         return extended_pattern
                 finally:
                     if (time.time() - start) > 0.05:
                         logging.warning(f"Long TRIPLE_MATCH  {time.time() - start}s")
                         # other modes
+            # todo: currently we finish after first match
         if ke_settings.has_extend_graph_patterns_mode(GraphPatternExtMode.SPARQL_MATCH):
             # for other_ki in ki_list:
-            for other_pattern in other_kb_cache.ki_patterns.values():
+            for other_pattern in other_kb_patterns:
                 # other_pattern = other_kb_cache[other_ki]
                 start = time.time()
                 try:
@@ -314,7 +326,7 @@ class SemanticGPExt:
                     if (time.time() - start) > 0.25:
                         logging.warning(f"Long SPARQL_MATCH  {time.time() - start}s")
         if ke_settings.has_extend_graph_patterns_mode(GraphPatternExtMode.ONTOLOGY_SPARQL_MATCH):
-            for other_pattern in other_kb_cache.ki_patterns.values():
+            for other_pattern in other_kb_patterns:
                 # for other_ki in ki_list:
                 # other_pattern = other_kb_cache[other_ki]
                 # Extend pattern with ontology

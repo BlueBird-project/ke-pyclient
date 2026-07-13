@@ -125,6 +125,19 @@ class KnowledgeInteractionType(BaseEnum):
     REACT = EnumItem("ReactKnowledgeInteraction")
     ANSWER = EnumItem("AnswerKnowledgeInteraction")
 
+    @staticmethod
+    def is_opposite(ki_type, other_ki_type):
+        return KnowledgeInteractionType.__ki_opposite_map__[ki_type] == other_ki_type
+
+
+__ki_opposite_map__ = {
+    KnowledgeInteractionType.POST: KnowledgeInteractionType.REACT,
+    KnowledgeInteractionType.REACT: KnowledgeInteractionType.POST,
+    KnowledgeInteractionType.ASK: KnowledgeInteractionType.ANSWER,
+    KnowledgeInteractionType.ANSWER: KnowledgeInteractionType.ASK,
+}
+KnowledgeInteractionType.__ki_opposite_map__ = __ki_opposite_map__
+
 
 class ExchangeInfoStatus(BaseEnum):
     FAILED = EnumItem("FAILED")
