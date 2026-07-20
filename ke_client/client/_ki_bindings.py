@@ -95,7 +95,7 @@ class BindingsBase(BaseModel):
     def convert_value(attr: Union[Literal, URIRef, None], converter: Callable[[str], Optional[Any]] = str) \
             -> Optional[Any]:
         """
-        safe convert Literal (or rdf:nil type:URIRef) value
+        safe convert Literal (or rdf:nil type:URIRef) to value
         :param attr: Literal instance
         :param converter: converter callable
         :return: result of converter(value)  or None
