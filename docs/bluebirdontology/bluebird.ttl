@@ -67,6 +67,11 @@ ubmarket:CapacityMarket
     rdfs:subClassOf ubmarket:MarketType ;
     rdfs:comment    "CapacityMarket - market with contracted consumer's flexibility and baseline  (static-BaseLine|dynamic-DynamicBaseline) . Demands power reduction below baseline during peak hours by contracted flexibility  "@en ;
     rdfs:label      "CapacityMarket" .
+ubmarket:MarketAgent
+    a               rdfs:Class ;
+    rdfs:subClassOf foaf:Agent  ;
+    rdfs:comment    "MarketAgent   "@en ;
+    rdfs:label      "MarketAgent" .
 
 ubmarket:isForecastOf
     a            owl:ObjectProperty ;
