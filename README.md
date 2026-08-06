@@ -2,7 +2,7 @@
 
 Python client for TNO Knowledge Engine
 
-"## BlueBird UBFlex
+## BlueBird UBFlex
 This library is used by the [UBFlex](https://github.com/BlueBird-project/UBFlex) integration layer in the BlueBird project. UBFlex contains BlueBird-specific ontology definitions, graph-pattern configurations, Smart Connector resources and integration documentation. `ke-pyclient` remains a separate reusable Python client library for the TNO Knowledge Engine."
 
 ## Library management
