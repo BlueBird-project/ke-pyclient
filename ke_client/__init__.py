@@ -47,10 +47,14 @@ def configure_ki():
         from ke_client.ki_model import GraphPattern
         graph_patterns: Dict[str, GraphPattern] = {}
         prefixes = {}
+        base_path = os.path.dirname(os.path.abspath(ki_conf_file))
 
         # ki_vars
         def include(include_file_path: str):
-            included_yml = load_yml_obj(include_file_path, section=KnowledgeInteractionConfig.__SECTION__,
+            include_path = os.path.join(base_path, include_file_path)
+            if os.path.exists(include_path):
+                include_path = include_file_path
+            included_yml = load_yml_obj(include_path, section=KnowledgeInteractionConfig.__SECTION__,
                                         settings_constructor=dict, file_vars=ke_settings.get_ki_vars())
             included_conf = KnowledgeInteractionConfig.model_validate(included_yml)
             for k in included_conf.graph_patterns_safe().keys():
