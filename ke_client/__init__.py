@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Optional
 
 from .utils import load_yml_obj
@@ -46,7 +47,7 @@ def configure_ki():
     if "include" in _ki_conf:
         from ke_client.ki_model import GraphPattern
         graph_patterns: Dict[str, GraphPattern] = {}
-        prefixes = {}
+        prefixes = ki_conf.prefixes_safe()
         base_path = os.path.dirname(os.path.abspath(ki_conf_file))
 
         # ki_vars
@@ -59,8 +60,12 @@ def configure_ki():
             included_conf = KnowledgeInteractionConfig.model_validate(included_yml)
             for k in included_conf.graph_patterns_safe().keys():
                 if k in graph_patterns.keys():
-                    raise Exception(f"Duplicate graph pattern key: '{k}'.")
+                    logging.warning(f"File: {include_file_path} - overriding graph pattern: '{k}' .")
+                    # raise Exception(f"Duplicate graph pattern key: '{k}'.")
             graph_patterns.update(included_conf.graph_patterns_safe())
+            for prefix, v in included_conf.prefixes_safe().items():
+                if prefix in prefixes and prefixes[prefix] != v:
+                    raise Exception(f"Different prefix value for:{prefix}. Expected: {prefixes[prefix]}, received:{v}.")
             prefixes.update(included_conf.prefixes_safe())
 
         if type(_ki_conf["include"]) is list:
