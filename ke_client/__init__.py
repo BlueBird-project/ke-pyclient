@@ -53,7 +53,7 @@ def configure_ki():
         # ki_vars
         def include(include_file_path: str):
             include_path = os.path.join(base_path, include_file_path)
-            if os.path.exists(include_path):
+            if not os.path.exists(include_path):
                 include_path = include_file_path
             included_yml = load_yml_obj(include_path, section=KnowledgeInteractionConfig.__SECTION__,
                                         settings_constructor=dict, file_vars=ke_settings.get_ki_vars())
@@ -87,6 +87,7 @@ def configure_ki():
             prefixes.update(ki_conf.prefixes_safe())
             ki_conf.prefixes = prefixes
         if len(graph_patterns) > 0:
+            # main file overrides everything
             graph_patterns.update(ki_conf.graph_patterns_safe())
             ki_conf.graph_patterns = graph_patterns
     for gp in ki_conf.graph_patterns.values():
