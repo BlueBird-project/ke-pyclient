@@ -19,6 +19,11 @@ KIBindings: TypeAlias = List[Union[Dict[str, Any], BindingsBase]]
 OptionalLiteral: TypeAlias = Union[Literal, URIRef, None]
 OptionalURIRef: TypeAlias = Union[URIRef, None]
 
+def to_literal(v: Optional[Union[float, str, int]], datatype: Optional[str] = None) -> OptionalLiteral:
+    from ke_client import rdf_nil
+    if v is None:
+        return rdf_nil
+    return Literal(v, datatype=datatype)
 
 # TODO: move threading features to other module
 
