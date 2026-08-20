@@ -153,7 +153,7 @@ class KnowledgeInteraction(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     ki_name: str
     handler: Union[
-        Callable[[str, Optional[List[Dict[str, Any]]], str], Union[Dict[str, Any, str], List[Dict[str, Any, str]]]],
+        Callable[[str, Optional[List[Dict[str, Any]]], str], Union[Dict[str, Any], List[Dict[str, Any]]]],
         Callable[[], Union[Dict[str, Any], List[Dict[str, Any]]]],
         None
     ] = None
