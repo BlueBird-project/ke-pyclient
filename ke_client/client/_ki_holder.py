@@ -125,12 +125,12 @@ class KIHolder:
 
         try_validate_gp(gp=gp)
 
-        def measured_handler(kb_id: str, bindings: Optional[List[Dict[str, Any]]]):
+        def measured_handler(ki_id: str, bindings: Optional[List[Dict[str, Any]]]):
             current_ts = time_utils.current_timestamp()
-            result = handler(kb_id, bindings)
+            result = handler(ki_id, bindings)
             t = time_utils.current_timestamp() - current_ts
             if t > 2000:
-                logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) for {kb_id}")
+                logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) id: {ki_id}")
             return result
 
         ki = KnowledgeInteraction(ki_name=gp.ki_name(ki_type=ki_type), handler=measured_handler, ki_type=ki_type,
