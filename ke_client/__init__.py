@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Optional
 
 from .utils import load_yml_obj
-from .client import ki_object, SplitURIBase, ki_split_uri, rdf_nil, is_nil, BindingsBase, KITypeError, KIError, \
+from .client import ki_object, SplitURIBase, ki_split_uri, rdf_nil, is_nil,to_literal, BindingsBase, KITypeError, KIError, \
     KESettings, KnowledgeInteractionConfig, KEClient, OptionalLiteral, OptionalURIRef, KIHolder, TargetedBindings, \
     KERestClient
 from .gp_ext import is_uri_default

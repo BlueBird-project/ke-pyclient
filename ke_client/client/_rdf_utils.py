@@ -1,10 +1,18 @@
-from typing import Optional, get_origin, get_args, Union
+from typing import Optional, get_origin, get_args, Union, Any
 
 from rdflib import URIRef, Literal
+
+from ke_client import OptionalLiteral
 
 nil = URIRef("#nil", base="http://www.w3.org/1999/02/22-rdf-syntax-ns")
 # just an alias
 rdf_nil = nil
+
+
+def to_literal(v: Optional[Union[float, str, int]], datatype: Optional[str] = None) -> OptionalLiteral:
+    if v is None:
+        return rdf_nil
+    return Literal(v, datatype=datatype)
 
 
 def is_nil(uri_ref: Optional[Union[URIRef, Literal]]):
