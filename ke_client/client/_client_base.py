@@ -393,14 +393,19 @@ class KEClientBase(BaseModel):
         try:
             handle_request = response.json()
             ki_id: str = handle_request["knowledgeInteractionId"]
+            requesting_kb_id: Optional[str] = None
+            if "requestingKnowledgeBaseId" in handle_request:
+                requesting_kb_id = handle_request["requestingKnowledgeBaseId"]
+            else:
+                requesting_kb_id = None
             # requestingKnowledgeBaseId: str = handle_request["requestingKnowledgeBaseId"]
             handle_request_id = handle_request["handleRequestId"]
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
 
-            result_bindings = ki.handler(ki_id, bindings)
+            result_bindings = ki.handler(ki_id, bindings,requesting_kb_id)
             self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id,
-                          ki_type=ki.ki_type)
+                          ki_type=ki.ki_type, requesting_kb_id=requesting_kb_id)
             return ki_id
         except Exception as ex:
             self.logger.error(
@@ -440,12 +445,13 @@ class KEClientBase(BaseModel):
             # what in case of an error ?
             return send_request()
 
-    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: EnumItem):
+    def _handle_(self, bindings: list[dict[str, str]], ki_id: str, handle_request_id, ki_type: EnumItem,
+                 requesting_kb_id: Optional[str] = None):
         """
         REACT/ANSWER knowledge interactions handler, triggered by KE
         """
         ki_name = self._registered_ki_[ki_id].ki_name
-        logging.info(f"HANDLE REQUEST={ki_id}:{ki_name}")
+        logging.info(f"HANDLE REQUEST=({requesting_kb_id})=>{ki_id}:{ki_name}")
         post_json: dict
         if ki_type == KnowledgeInteractionType.REACT:
             post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, "resultBindingSet": bindings, }

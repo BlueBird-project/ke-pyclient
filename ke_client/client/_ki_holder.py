@@ -53,7 +53,7 @@ def _verify_mismatched_bindings(ki_id: str, input_bindings, output_bindings):
 
 
 def _init_ki_kwargs(wrapper_args, params: Dict[str, inspect.Parameter]):
-    _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1]}.items() if
+    _kwargs = {k: v for k, v in {"ki_id": wrapper_args[0], "bindings": wrapper_args[1], "kb_id": wrapper_args[2]}.items() if
                k in params}
     if to_json(_kwargs["bindings"]) == to_json([{}]):
         _kwargs["bindings"] = []
@@ -125,9 +125,10 @@ class KIHolder:
 
         try_validate_gp(gp=gp)
 
-        def measured_handler(ki_id: str, bindings: Optional[List[Dict[str, Any]]]):
+        def measured_handler(ki_id: str, bindings: Optional[List[Dict[str, Any]]],
+                             requesting_kb_id: Optional[str] = None):
             current_ts = time_utils.current_timestamp()
-            result = handler(ki_id, bindings)
+            result = handler(ki_id, bindings, requesting_kb_id)
             t = time_utils.current_timestamp() - current_ts
             if t > 2000:
                 logging.warning(f"Slow ({t} ms) KI handler ({call_ctx}) id: {ki_id}")
