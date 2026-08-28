@@ -9,16 +9,31 @@ from typing import Optional
 
 # region xsd
 def xsd_now(tz=pytz.utc):
+    """
+    :param tz: timezone
+    :return: current datetime in xsd format
+    """
     # tz=pytz.timezone('Europe/Paris')
     return xsd_from_ts(current_timestamp(), tz=tz)
 
 
 def xsd_from_ts(ts: int, tz=pytz.utc) -> str:
     # tz=pytz.timezone('Europe/Paris')
+    """
+    convert unix timestamp (ms) to xsd
+    :param ts:
+    :param tz:
+    :return:
+    """
     return dt.fromtimestamp(float(ts) / 1000.0, tz=tz).isoformat()
 
 
 def xsd_to_ts(xsd_dt: str) -> int:
+    """
+    convert xsd datetime to unix timestamp (ms)
+    :param xsd_dt:
+    :return:
+    """
     return round(dt.fromisoformat(xsd_dt).timestamp() * 1000)
 
 
@@ -131,5 +146,3 @@ def exec_time(func):
         return res
 
     return wrapper
-
-
