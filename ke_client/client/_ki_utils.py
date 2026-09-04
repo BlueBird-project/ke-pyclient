@@ -99,8 +99,8 @@ def _verify_object_ki(gp_name: str, bindings_arg_annotation, call_ctx: str):
                         return
             else:
                 logging.warning(
-                    f"Missing List's type annotation for `bindings` in {call_ctx}. Expected: `List[BindingsBase]`" +
-                    f", got: `{str(bindings_arg_annotation)}` .")
+                    f"Missing List's type annotation for `bindings` argument in the {call_ctx} handler."
+                    f" Expected: `List[BindingsBase]`, got: `{str(bindings_arg_annotation)}` . ")
         else:
             if bindings_arg_annotation is not None and bindings_arg_annotation is not inspect.Signature.empty:
                 raise KIError(f"Expected empty type or List[BindingsBase]," +
