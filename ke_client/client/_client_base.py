@@ -273,9 +273,9 @@ class KEClientBase(BaseModel):
         if response.status_code != 200:
             try:
                 error_message = (f"Registration failed,status_code: {response.status_code}, "
-                                 f"message: {response.json()["message"]}")
+                                 f"message: {response.json()["message"]}, for: {ki.ki_name}")
             except Exception:
-                error_message = f"Registration failed,status_code: {response.status_code}"
+                error_message = f"Registration failed,status_code: {response.status_code}, for: {ki.ki_name}"
             raise Exception(error_message)
         ki_id = response.json()["knowledgeInteractionId"]
         ki.ki_id = ki_id

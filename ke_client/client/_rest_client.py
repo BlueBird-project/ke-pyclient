@@ -44,7 +44,7 @@ class KERestClient:
                 error_message = (f"GET sc list failed,status_code: {response.status_code}, "
                                  f"message: {response.content}")
             except Exception:
-                error_message = f"Registration failed,status_code: {response.status_code}"
+                error_message = f"GET sc list failed,status_code: {response.status_code}"
             raise Exception(error_message)
         sc_list = adapter.validate_json(response.content)
         return sc_list
@@ -60,7 +60,7 @@ class KERestClient:
                 error_message = (f"GET ki for {kb_id} failed,status_code: {response.status_code}, "
                                  f"message: {response.content}")
             except Exception:
-                error_message = f"Registration failed,status_code: {response.status_code}"
+                error_message = f"GET ki for {kb_id} failed,status_code: {response.status_code}"
             raise Exception(error_message)
         ki_list = adapter.validate_json(response.content)
         return ki_list
