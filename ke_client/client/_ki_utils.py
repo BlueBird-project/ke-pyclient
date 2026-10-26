@@ -221,8 +221,12 @@ def _verify_pattern_bindings(name: str, ki_type: EnumItem, ki_bindings: Optional
         for ki_binding in ki_bindings:
             args_missing = [ki_arg for ki_arg in ki_binding.keys() if ki_arg not in gp_vars]
             if len(args_missing) > 0:
+                if ki_type == KnowledgeInteractionType.REACT:
+                    raise KIError(
+                        f"Result Graph pattern for: KI {ki_type}:{name} is missing variables: "
+                        f"{",".join([f"'{v}'" for v in args_missing])} ", ctx=call_ctx)
                 raise KIError(
-                    f" KI {ki_type}:{name} is missing variables: "
+                    f"Argument Graph pattern for: KI {ki_type}:{name} is missing variables: "
                     f"{",".join([f"'{v}'" for v in args_missing])} ", ctx=call_ctx)
 
 
