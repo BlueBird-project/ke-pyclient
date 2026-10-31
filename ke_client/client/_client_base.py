@@ -6,6 +6,7 @@ from http import HTTPStatus
 import requests
 import time
 
+from ke_client.utils import time_utils
 from ke_client.utils.enum_utils import EnumItem
 from pydantic import BaseModel, PrivateAttr
 
@@ -402,8 +403,11 @@ class KEClientBase(BaseModel):
             handle_request_id = handle_request["handleRequestId"]
             bindings: list[Dict[str, Any]] = handle_request["bindingSet"]
             ki = self._registered_ki_[ki_id]
-
-            result_bindings = ki.handler(ki_id, bindings,requesting_kb_id)
+            current_ts = time_utils.current_timestamp()
+            result_bindings = ki.handler(ki_id, bindings, requesting_kb_id)
+            t = time_utils.current_timestamp() - current_ts
+            if t > 15000:
+                logging.warning(f"Long KI ({ki_id}:{ki.ki_type}) response from {requesting_kb_id} .")
             self._handle_(bindings=result_bindings, ki_id=ki_id, handle_request_id=handle_request_id,
                           ki_type=ki.ki_type, requesting_kb_id=requesting_kb_id)
             return ki_id

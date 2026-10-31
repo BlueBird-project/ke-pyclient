@@ -92,7 +92,7 @@ def _verify_object_ki(gp_name: str, bindings_arg_annotation, call_ctx: str):
                     logging.warning(f"Object type not decorated  {call_ctx}.  ")
                 else:
                     if gp_name != cls_annotations[0].__gp_name__:
-                        raise KIError(f"Different graph patterns for function ({gp_name}) and" +
+                        raise KIError(f"Different graph patterns for function ({gp_name}) and " +
                                       f"object type ({cls_annotations[0].__name__}:{cls_annotations[0].__gp_name__})",
                                       ctx=call_ctx)
                     else:
