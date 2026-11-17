@@ -44,7 +44,10 @@ class UriTemplate(Generic[T]):
             self.__partial_uri_keys__ = {k for k in self.__uri_keys__ if k in self.__obj_attr_keys__}
         self.__uri_obj_class__ = t
         self.__allowed_none__ = allowed_none
+        if uri_template.startswith("/"):
+            uri_template=uri_template[1:]
         str_template = Template(uri_template)
+
         self.__uri_builder__: Callable[[dict], str] = lambda d: str_template.safe_substitute(d)
 
     # def __setattr__(self, name: str, value):
