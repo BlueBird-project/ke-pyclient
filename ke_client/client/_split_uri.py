@@ -157,7 +157,9 @@ class SplitURIBase(BaseModel):
         return URIRef(self.append(suffix))
 
     @staticmethod
-    def uri_append_ref(uri: str, suffix: str) -> URIRef:
+    def uri_append_ref(uri: Union[str, URIRef], suffix: str) -> URIRef:
+        if type(uri) is URIRef:
+            URIRef(SplitURIBase.uri_append(str(uri), suffix))
         return URIRef(SplitURIBase.uri_append(uri, suffix))
 
     def __str__(self) -> str:
