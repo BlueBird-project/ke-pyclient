@@ -173,7 +173,7 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
                                           headers={"Knowledge-Base-Id": self.kb_id})
         t = time_utils.current_timestamp() - current_ts
         if t > 2000:
-            logging.info(f"Called KE sc/handle in {t}ms")
+            logging.debug(f"Called KE sc/handle in {t}ms")
         if response.status_code == 200:
             # 200 means: we receive bindings that we need to handle, then re-poll asap.
             current_ts = time_utils.current_timestamp()
