@@ -168,8 +168,12 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
 
     # region client's main loop
     def _handler_loop_tick_(self):
+        current_ts = time_utils.current_timestamp()
         response = self._api_get_request_(self.ke_rest_endpoint + "sc/handle",
                                           headers={"Knowledge-Base-Id": self.kb_id})
+        t = time_utils.current_timestamp() - current_ts
+        if t > 2000:
+            logging.info(f"Called KE sc/handle in {t}ms")
         if response.status_code == 200:
             # 200 means: we receive bindings that we need to handle, then re-poll asap.
             current_ts = time_utils.current_timestamp()
@@ -185,11 +189,11 @@ class KEClient(KEClientBase, KERequestClient, KIHolder):
         elif response.status_code == 410:
             # 410 means: KE has stopped, so terminate  # TODO catch error /self.logger
             # break
-            self.logger.warning(f"Received{response.status_code}")
+            self.logger.warning(f"KE:Received {response.status_code}")
             time.sleep(30)
             return False
         else:
-            self.logger.warning(f"received unexpected status {response.status_code}")
+            self.logger.warning(f"KE:Received unexpected status {response.status_code}")
             self.logger.warning(response.text)
             self.logger.info("Re-polling after a short timeout")
             time.sleep(15)

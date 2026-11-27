@@ -49,3 +49,6 @@ times.
 Each handler call would result with new KI and potentially the same information could be sent to the client more than
 once due to multiple separate KIs.
  
+
+### TODO: 
+on ki timeout - try to repeat request in case of temporary unavailability
