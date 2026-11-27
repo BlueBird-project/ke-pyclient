@@ -463,10 +463,14 @@ class KEClientBase(BaseModel):
 
             post_json = {"handleRequestId": handle_request_id, "bindingSet": bindings, }
 
+        current_ts = time_utils.current_timestamp()
         response = self._api_post_request_(endpoint=self.ke_rest_endpoint + "sc/handle",
                                            headers={"Knowledge-Base-Id": self.kb_id,
                                                     "Knowledge-Interaction-Id": ki_id, },
                                            ke_request=post_json, )
+        t = time_utils.current_timestamp() - current_ts
+        if t > 2000:
+            logging.warning(f"Long KE sc/handle ({t} ms) KI id: {ki_id}")
 
         self._assert_response_(response, ki_name=ki_name)
     # endregion
